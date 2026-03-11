@@ -2,12 +2,39 @@
 
 {% block content %}
 <style>
-    /* Убираем стрелку у статуса и троеточия */
+    /* Кнопка "Создать" / "Сохранить" (Светло-серая с темной обводкой) */
+    .btn-save {
+        background-color: #b7b9bc !important;
+        border: 1px solid #151516 !important; /* Добавлена темная обводка */
+        color: #151516 !important;
+        transition: background-color 0.2s !important;
+    }
+
+    .btn-save:hover {
+        background-color: #a1a3a5 !important;
+        border-color: #000 !important;
+        color: #000 !important;
+    }
+
+    /* Кнопка "Отмена" / "Закрыть" (Белая с темной обводкой) */
+    .btn-cancel {
+        background-color: #ffffff !important;
+        border: 1px solid #151516 !important;
+        color: #151516 !important;
+        transition: all 0.2s !important;
+    }
+
+    .btn-cancel:hover {
+        background-color: #f8f9fa !important;
+        border-color: #000 !important;
+        color: #000 !important;
+    }
+
+    /* Остальные стили без изменений */
     .dropdown-toggle::after {
         display: none !important;
     }
 
-    /* Подсветка статуса при наведении */
     .status-link {
         background: none !important;
         border: none !important;
@@ -24,7 +51,6 @@
         border-radius: 4px !important;
     }
 
-    /* Стиль кнопки троеточия */
     .action-btn {
         background: none;
         border: none;
@@ -41,7 +67,6 @@
         color: #000;
     }
 
-    /* Выравнивание выпадающего меню, чтобы оно не уезжало за край */
     .dropdown-menu-end {
         right: 0;
         left: auto;
@@ -51,7 +76,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Управление проектами</h1>
-        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+        <button type="button" class="btn btn-cancel" data-bs-toggle="modal" data-bs-target="#addProjectModal">
             Создать проект
         </button>
     </div>
@@ -85,29 +110,25 @@
                                     <li>
                                         <form action="/projects/update-status/{{ project.id }}" method="post">
                                             <input type="hidden" name="status" value="In Progress">
-                                            <button type="submit" class="dropdown-item {% if project.status == 'In Progress' %}active{% endif %}">В процессе</button>
+                                            <button type="submit" class="dropdown-item">В процессе</button>
                                         </form>
                                     </li>
                                     <li>
                                         <form action="/projects/update-status/{{ project.id }}" method="post">
                                             <input type="hidden" name="status" value="Done">
-                                            <button type="submit" class="dropdown-item {% if project.status == 'Done' %}active{% endif %}">Завершено</button>
+                                            <button type="submit" class="dropdown-item">Завершено</button>
                                         </form>
                                     </li>
                                 </ul>
                             </div>
                         </td>
                         <td>
-    {% if project.deadline %}
-        {% if project.deadline is string %}
-            {{ project.deadline }}
-        {% else %}
-            {{ project.deadline.strftime('%d.%m.%Y') }}
-        {% endif %}
-    {% else %}
-        Не указан
-    {% endif %}
-</td>
+                            {% if project.deadline %}
+                                {{ project.deadline.strftime('%d.%m.%Y') if project.deadline.strftime else project.deadline }}
+                            {% else %}
+                                Не указан
+                            {% endif %}
+                        </td>
                         <td class="text-end pe-4">
                             <div class="dropdown">
                                 <button class="action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -134,7 +155,7 @@
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <form action="/projects/update/{{ project.id }}" method="post">
-                                    <div class="modal-header">
+                                    <div class="modal-header border-0">
                                         <h5 class="modal-title">Редактирование проекта</h5>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
@@ -149,13 +170,13 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Срок</label>
-                                            <input type="date" name="deadline" class="form-control" value="{{ project.deadline.strftime('%Y-%m-%d') if project.deadline else '' }}">
+                                            <input type="date" name="deadline" class="form-control" value="{{ project.deadline.strftime('%Y-%m-%d') if project.deadline.strftime else project.deadline }}">
                                         </div>
                                         <input type="hidden" name="status" value="{{ project.status }}">
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                                    <div class="modal-footer border-0">
+                                        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Отмена</button>
+                                        <button type="submit" class="btn btn-save">Сохранить</button>
                                     </div>
                                 </form>
                             </div>
@@ -172,7 +193,7 @@
     <div class="modal-dialog">
         <div class="modal-content text-start">
             <form action="/projects/create" method="post">
-                <div class="modal-header">
+                <div class="modal-header border-0">
                     <h5 class="modal-title">Новый проект</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -191,9 +212,9 @@
                     </div>
                     <input type="hidden" name="status" value="In Progress">
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="submit" class="btn btn-primary">Создать</button>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-save">Создать</button>
                 </div>
             </form>
         </div>
