@@ -3,33 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Управление проектами{% endblock %}</title>
+    <title>{% block title %}ProjectHub{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .sidebar { min-height: 100vh; background: #b7b9bc; color: white; padding-top: 20px; }
-        .sidebar a { color: #151516; text-decoration: none; display: block; padding: 10px 20px; }
-        .sidebar a:hover { background: #b7b9bc; color: white; }
-        .content { padding: 20px; }
+        body { 
+            background-color: #f8f9fa; 
+            overflow-x: hidden; 
+            margin: 0; 
+        }
+        
+        /* Стили боковой панели */
+        .sidebar { 
+            min-height: 100vh; 
+            background: #b7b9bc; 
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 250px; /* Начальная ширина */
+            z-index: 1000;
+            transition: transform 0.3s ease; /* Плавность для скрытия */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Когда панель скрыта */
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar h4 {
+            padding: 20px 0;
+            margin: 0;
+            color: #151516;
+        }
+
+        .sidebar a { 
+            color: #151516; 
+            text-decoration: none; 
+            display: block; 
+            padding: 12px 20px; 
+            font-weight: 500;
+            white-space: nowrap; /* Чтобы текст не переносился при сужении */
+            overflow: hidden;
+        }
+        
+        .sidebar a:hover { 
+            background: rgba(255,255,255,0.2); 
+            color: #000; 
+        }
+
+        /* --- РЕЗАЙЗЕР (Линия для перетаскивания) --- */
+        .resizer {
+            width: 8px;
+            cursor: col-resize;
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1001;
+            transition: background 0.2s;
+        }
+        
+        .resizer:hover {
+            background: rgba(0, 0, 0, 0.1); /* Подсветка при наведении */
+        }
+        
+        /* Контентная область */
+        .content { 
+            transition: margin-left 0.3s ease, width 0.3s ease;
+            margin-left: 250px; /* Должно совпадать с шириной sidebar */
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        /* Когда панель скрыта, контент занимает всё место */
+        .content.expanded {
+            margin-left: 0 !important;
+        }
+
+        /* Кнопка "гамбургер" */
+        #toggleSidebar {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 5px 15px;
+            color: #151516;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <nav class="col-md-2 d-none d-md-block sidebar">
-                <h4 class="text-center">Система?</h4>
-                <a href="/">Главная</a>
-                <a href="/projects">Проекты</a>
-                <a href="/tasks">Задачи</a>
-                <a href="/users">Участники</a>
-                <hr>
-                <a href="/logout">Выход</a>
-            </nav>
-            <main class="col-md-10 content">
-                {% block content %}{% endblock %}
-            </main>
+
+    <nav class="sidebar" id="sidebar">
+        <h4 class="text-center">ProjectHub</h4>
+        <a href="/">Главная</a>
+        <a href="/projects">Проекты</a>
+        <a href="/tasks">Задачи</a>
+        <a href="/users">Участники</a>
+        <hr>
+        <a href="/logout">Выход</a>
+        
+        <div class="resizer" id="resizer"></div>
+    </nav>
+
+    <main class="content" id="content">
+        <button id="toggleSidebar" title="Скрыть/Показать меню">☰</button>
+        
+        <div class="container-fluid">
+            {% block content %}{% endblock %}
         </div>
-    </div>
+    </main>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('content');
+        const resizer = document.getElementById('resizer');
+        const toggleBtn = document.getElementById('toggleSidebar');
+
+        // --- 1. СКРЫТИЕ ПАНЕЛИ ---
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+        });
+
+        // --- 2. ИЗМЕНЕНИЕ ШИРИНЫ (RESIZE) ---
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none'; // Отключаем выделение текста
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            // Текущая координата мыши - это и есть новая ширина
+            let newWidth = e.clientX;
+
+            // Устанавливаем границы (чтобы не схлопнулось совсем и не растянулось на весь экран)
+            if (newWidth > 150 && newWidth < 600) {
+                sidebar.style.width = newWidth + 'px';
+                // Если панель не скрыта, двигаем контент за ней
+                if (!sidebar.classList.contains('collapsed')) {
+                    content.style.marginLeft = newWidth + 'px';
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+        });
+    </script>
 </body>
 </html>
