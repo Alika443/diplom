@@ -101,3 +101,16 @@ async def update_project(
             project.deadline = datetime.strptime(deadline, '%Y-%m-%d')
         db.commit()
     return responses.RedirectResponse(url="/projects", status_code=303)
+
+
+@app.post("/projects/update-status/{project_id}")
+async def update_status(
+    project_id: int, 
+    status: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if project:
+        project.status = status
+        db.commit()
+    return responses.RedirectResponse(url="/projects", status_code=303)
