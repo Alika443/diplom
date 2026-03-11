@@ -4,9 +4,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">📁 Управление проектами</h1>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-            + Создать проект
-        </button>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">+ Создать проект</button>
     </div>
 
     <div class="card shadow-sm">
@@ -17,7 +15,8 @@
                         <th>ID</th>
                         <th>Название</th>
                         <th>Статус</th>
-                        <th>Дата</th>
+                        <th>Срок</th>
+                        <th class="text-end">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -25,15 +24,51 @@
                     <tr>
                         <td>{{ project.id }}</td>
                         <td><strong>{{ project.title }}</strong></td>
-                        <td><span class="badge bg-info text-dark">{{ project.status }}</span></td>
-                        <td>{{ project.created_at.strftime('%d.%m.%Y') if project.created_at else '-' }}</td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">
-                            <p>Проектов пока нет.</p>
+                        <td>
+                            <span class="badge {% if project.status == 'Done' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ project.status }}
+                            </span>
+                        </td>
+                        <td>{{ project.deadline.strftime('%d.%m.%Y') if project.deadline else '-' }}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editModal{{ project.id }}">✏️</button>
+                            
+                            <form action="/projects/delete/{{ project.id }}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить проект?')">🗑️</button>
+                            </form>
                         </td>
                     </tr>
+
+                    <div class="modal fade" id="editModal{{ project.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="/projects/update/{{ project.id }}" method="post">
+                                    <div class="modal-header"><h5 class="modal-title">Редактировать</h5></div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Название</label>
+                                            <input type="text" name="title" class="form-control" value="{{ project.title }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Статус</label>
+                                            <select name="status" class="form-select">
+                                                <option value="In Progress" {% if project.status == 'In Progress' %}selected{% endif %}>В разработке</option>
+                                                <option value="Done" {% if project.status == 'Done' %}selected{% endif %}>Завершен</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Срок выполнения</label>
+                                            <input type="date" name="deadline" class="form-control" value="{{ project.deadline.strftime('%Y-%m-%d') if project.deadline else '' }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                     {% endfor %}
                 </tbody>
             </table>
@@ -41,26 +76,22 @@
     </div>
 </div>
 
-<div class="modal fade" id="addProjectModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="addProjectModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="/projects/create" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title">Новый проект</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title">Новый проект</h5></div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Название проекта</label>
-                        <input type="text" name="title" class="form-control" required placeholder="Введите название...">
+                        <label class="form-label">Название</label>
+                        <input type="text" name="title" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Описание</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Краткое описание проекта..."></textarea>
+                        <textarea name="description" class="form-control"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                     <button type="submit" class="btn btn-primary">Создать</button>
                 </div>
             </form>

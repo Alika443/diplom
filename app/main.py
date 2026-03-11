@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, Depends, Form, responses
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from app.database import engine, Base, get_db
 from app.models.project import Project 
@@ -69,4 +70,34 @@ async def create_project(
     db.refresh(new_project)
     
     # После сохранения возвращаемся обратно на страницу проектов
+    return responses.RedirectResponse(url="/projects", status_code=303)
+
+
+
+# Маршрут для УДАЛЕНИЯ
+@app.post("/projects/delete/{project_id}")
+async def delete_project(project_id: int, db: Session = Depends(get_db)):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if project:
+        db.delete(project)
+        db.commit()
+    return responses.RedirectResponse(url="/projects", status_code=303)
+
+# Маршрут для РЕДАКТИРОВАНИЯ
+@app.post("/projects/update/{project_id}")
+async def update_project(
+    project_id: int, 
+    title: str = Form(...), 
+    status: str = Form(...),
+    deadline: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if project:
+        project.title = title
+        project.status = status
+        if deadline:
+            # Превращаем строку из календаря в объект даты Python
+            project.deadline = datetime.strptime(deadline, '%Y-%m-%d')
+        db.commit()
     return responses.RedirectResponse(url="/projects", status_code=303)

@@ -8,5 +8,6 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     description = Column(Text)
-    status = Column(String, default="В разработке") # Планируется, В разработке, Завершен
+    status = Column(String, default="In Progress")
+    deadline = Column(DateTime, nullable=True) # Новое поле для даты
     created_at = Column(DateTime, default=datetime.utcnow)
