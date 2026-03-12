@@ -45,6 +45,24 @@ def read_root(request: Request, db: Session = Depends(get_db)):
         }
     })
 
+    total_projects = db.query(Project).count()
+    active_tasks = db.query(Task).count()
+    total_users = db.query(User).count()
+
+    # Получаем последние 5 проектов, отсортированных по ID (или дате, если она есть)
+    recent_projects = db.query(Project).order_by(Project.id.desc()).limit(5).all()
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "stats": {
+            "projects": total_projects,
+            "tasks": active_tasks,
+            "users": total_users,
+            "urgent": active_tasks
+        },
+        "recent_projects": recent_projects
+    })
+
 @app.get("/projects", response_class=HTMLResponse)
 async def projects_page(request: Request, db: Session = Depends(get_db)):
     try:

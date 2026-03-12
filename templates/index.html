@@ -35,6 +35,52 @@
         color: #151516;
         display: block;
     }
+
+
+    .recent-section {
+        background-color: #ffffff;
+        border: 1px solid #151516;
+        border-radius: 8px;
+        margin-top: 30px;
+        padding: 0; /* Чтобы таблица примыкала к краям */
+        overflow: hidden;
+    }
+
+    .section-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        text-uppercase: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        border-top: none;
+        padding: 12px 24px;
+    }
+
+    .table tbody td {
+        padding: 16px 24px;
+        vertical-align: middle;
+        color: #151516;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    /* Цвета для статусов (можно настроить под свои) */
+    .status-active { background-color: #e3f2fd; color: #0d47a1; }
+    .status-new { background-color: #e8f5e9; color: #1b5e20; }
 </style>
 
 <div class="container-fluid py-4">
@@ -70,6 +116,51 @@
                 <span class="stat-value text-danger">{{ stats.urgent }}</span>
             </div>
         </div>
+    </div>
+</div>
+
+
+<div class="recent-section">
+    <div class="section-header">
+        <h3 class="h5 mb-0 fw-bold">Последние проекты</h3>
+        <a href="/projects" class="btn btn-sm btn-outline-dark">Все проекты</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Статус</th>
+                    <th>Дедлайн</th>
+                    <th class="text-end">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in recent_projects %}
+                <tr>
+                    <td class="fw-bold">{{ project.title }}</td>
+                    <td>
+                        <span class="status-pill {% if project.status == 'Active' %}status-active{% else %}status-new{% endif %}">
+                            {{ project.status or 'Новый' }}
+                        </span>
+                    </td>
+                    <td class="text-muted">
+                        {{ project.deadline.strftime('%d.%m.%Y') if project.deadline else 'Не установлен' }}
+                    </td>
+                    <td class="text-end">
+                        <a href="/projects" class="text-decoration-none text-dark">→</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        У вас пока нет созданных проектов.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
