@@ -1,59 +1,65 @@
 import os
+from datetime import datetime
 from fastapi import FastAPI, Request, Depends, Form, responses
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from datetime import datetime
 
+# Импортируем базу и модели
 from app.database import engine, Base, get_db
-from app.models.project import Project 
+# Убедись, что в app/models/__init__.py прописаны импорты этих классов
+from app.models import Project, Task, User 
 
-# Создаем таблицы
+# Создаем таблицы в БД
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Путь к шаблонам (лучше сделать его абсолютным, чтобы Windows не путалась)
-current_dir = os.path.dirname(os.path.abspath(__file__))
-base_dir = os.path.dirname(current_dir)
-templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
-
-# Указываем, где лежат шаблоны
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-templates_path = os.path.join(base_dir, "templates")
+# --- НАСТРОЙКА ШАБЛОНОВ ---
+# Определяем путь к папке templates относительно текущего файла
+current_dir = os.path.dirname(os.path.abspath(__file__)) # папка app
+project_root = os.path.dirname(current_dir) # корень проекта
+templates_path = os.path.join(project_root, "templates")
 templates = Jinja2Templates(directory=templates_path)
 
-print(f"DEBUG: Путь к шаблонам: {templates_path}")
+# --- МАРШРУТЫ (ROUTES) ---
 
-@app.get("/", response_class=HTMLResponse)
-async def read_root(request: Request):
-    # Передаем request (обязательно для Jinja2 в FastAPI)
-    return templates.TemplateResponse("index.html", {"request": request})
-
-# Заглушки для остальных страниц, чтобы ссылки не выдавали 404
-from fastapi import Depends
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models.project import Project
+@app.get("/")
+def read_root(request: Request, db: Session = Depends(get_db)):
+    # Считаем данные для карточек
+    total_projects = db.query(Project).count()
+    # Обрати внимание: Task должен быть импортирован выше!
+    active_tasks = db.query(Task).filter(Task.status != "Done").count()
+    total_users = db.query(User).count()
+    
+    # Срочные задачи (например, те, что не выполнены)
+    urgent_tasks = active_tasks 
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "stats": {
+            "projects": total_projects,
+            "tasks": active_tasks,
+            "users": total_users,
+            "urgent": urgent_tasks
+        }
+    })
 
 @app.get("/projects", response_class=HTMLResponse)
 async def projects_page(request: Request, db: Session = Depends(get_db)):
     try:
-        # Получаем проекты из базы
         projects = db.query(Project).all()
-        # Отправляем их в файл project.html
         return templates.TemplateResponse("projects.html", {
             "request": request, 
             "projects": projects
         })
     except Exception as e:
-        return HTMLResponse(content=f"Ошибка: {e}", status_code=500)
+        return HTMLResponse(content=f"Ошибка в проектах: {e}", status_code=500)
 
 @app.get("/tasks", response_class=HTMLResponse)
 async def tasks_page(request: Request):
+    # Здесь можно будет позже сделать вывод задач по аналогии с проектами
     return templates.TemplateResponse("base.html", {"request": request})
-
-    from fastapi import Form, responses # Добавьте Form и responses в импорты
 
 @app.post("/projects/create")
 async def create_project(
@@ -61,20 +67,12 @@ async def create_project(
     description: str = Form(None), 
     db: Session = Depends(get_db)
 ):
-    # Создаем объект проекта
     new_project = Project(title=title, description=description)
-    
-    # Сохраняем в базу данных
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
-    
-    # После сохранения возвращаемся обратно на страницу проектов
     return responses.RedirectResponse(url="/projects", status_code=303)
 
-
-
-# Маршрут для УДАЛЕНИЯ
 @app.post("/projects/delete/{project_id}")
 async def delete_project(project_id: int, db: Session = Depends(get_db)):
     project = db.query(Project).filter(Project.id == project_id).first()
@@ -83,7 +81,6 @@ async def delete_project(project_id: int, db: Session = Depends(get_db)):
         db.commit()
     return responses.RedirectResponse(url="/projects", status_code=303)
 
-# Маршрут для РЕДАКТИРОВАНИЯ
 @app.post("/projects/update/{project_id}")
 async def update_project(
     project_id: int, 
@@ -97,11 +94,12 @@ async def update_project(
         project.title = title
         project.status = status
         if deadline:
-            # Превращаем строку из календаря в объект даты Python
-            project.deadline = datetime.strptime(deadline, '%Y-%m-%d')
+            try:
+                project.deadline = datetime.strptime(deadline, '%Y-%m-%d')
+            except ValueError:
+                pass # Если дата пришла в неверном формате
         db.commit()
     return responses.RedirectResponse(url="/projects", status_code=303)
-
 
 @app.post("/projects/update-status/{project_id}")
 async def update_status(

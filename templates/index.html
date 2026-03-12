@@ -3,32 +3,72 @@
 {% block title %}Главная - PMS{% endblock %}
 
 {% block content %}
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="p-5 mb-4 bg-white border rounded-3">
-            <h2>Добро пожаловать в систему управления проектами!</h2>
-            <p>Выберите раздел в меню слева, чтобы начать работу.</p>
-        </div>
-    </div>
-</div>
+<style>
+    /* Стиль карточки статистики */
+    .stat-card {
+        background-color: #ffffff;
+        border: 1px solid #151516; /* Твоя фирменная обводка */
+        border-radius: 8px;
+        padding: 24px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
 
-<div class="row text-center">
-    <div class="col-md-4">
-        <div class="card shadow-sm p-3">
-            <h3>📂 Проекты</h3>
-            <p>Создание и мониторинг</p>
-        </div>
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        text-uppercase: uppercase;
+        letter-spacing: 1px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #151516;
+        display: block;
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="h4 fw-bold">Обзор системы</h2>
     </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm p-3">
-            <h3>📝 Задачи</h3>
-            <p>Ваши текущие задания</p>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label text-uppercase">Проекты</span>
+                <span class="stat-value">{{ stats.projects }}</span>
+            </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card shadow-sm p-3">
-            <h3>📊 Отчеты</h3>
-            <p>Для заказчика</p>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label text-uppercase">Задачи в работе</span>
+                <span class="stat-value">{{ stats.tasks }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label text-uppercase">Команда</span>
+                <span class="stat-value">{{ stats.users }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label text-uppercase">Срочные</span>
+                <span class="stat-value text-danger">{{ stats.urgent }}</span>
+            </div>
         </div>
     </div>
 </div>
