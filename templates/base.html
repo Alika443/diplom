@@ -150,12 +150,37 @@
                 <a href="#" class="profile-dropdown dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <img src="https://thumbs.dreamstime.com/b/%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8C-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F-%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0-%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8F-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D1%8B-%D0%BF%D0%BE-%D1%83%D0%BC%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%B8%D1%8E-179376714.jpg" alt="Профиль" class="profile-avatar">
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-                    <li><h6 class="dropdown-header">Пользователь</h6></li>
-                    <li><a class="dropdown-item" href="/profile">Настройки</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="/logout">Выход</a></li>
-                </ul>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 320px; padding: 12px 0;">
+    <li class="px-4 pt-2">
+        <span class="text-uppercase fw-semibold" style="font-size: 0.75rem; color: #6c757d; letter-spacing: 1px;">
+            Учетная запись
+        </span>
+    </li>
+
+    <li class="px-4 py-3 d-flex align-items-center">
+        <img src="https://thumbs.dreamstime.com/b/%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8C-%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8F-%D0%B2%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B0-%D0%BF%D1%80%D0%BE%D1%84%D0%B8%D0%BB%D1%8F-%D0%B0%D0%B2%D0%B0%D1%82%D0%B0%D1%80%D1%8B-%D0%BF%D0%BE-%D1%83%D0%BC%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%B8%D1%8E-179376714.jpg" 
+             alt="Профиль" 
+             class="profile-avatar me-5">
+        
+        <div class="d-flex flex-column ps-2" style="line-height: 1.6;">
+            <span class="fw-bold" style="font-size: 1.25rem; color: #151516; letter-spacing: 0.4px;">
+                Имя Пользователя
+            </span>
+            <span class="text-muted" style="font-size: 0.95rem;">
+                user@example.com
+            </span>
+        </div>
+    </li>
+    
+    <li><hr class="dropdown-divider"></li>
+    
+    <li><a class="dropdown-item py-2 px-4" href="/profile">Настройки</a></li>
+    <li><a class="dropdown-item py-2 px-4" href="/help">Помощь</a></li>
+    
+    <li><hr class="dropdown-divider"></li>
+    
+    <li><a class="dropdown-item py-2 px-4 text-danger" href="/logout">Выйти</a></li>
+</ul>
             </div>
         </header>
         
