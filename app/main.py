@@ -123,3 +123,27 @@ async def update_status(
         project.status = status
         db.commit()
     return responses.RedirectResponse(url="/projects", status_code=303)
+
+@app.get("/search")
+async def search(request: Request, q: str = "", type: str = "all", db: Session = Depends(get_db)):
+    projects = []
+    tasks = []
+    users = []
+
+    if type == "all" or type == "projects":
+        projects = db.query(Project).filter(Project.title.ilike(f"%{q}%")).all()
+    
+    if type == "all" or type == "tasks":
+        tasks = db.query(Task).filter(Task.title.ilike(f"%{q}%")).all()
+
+    if type == "all" or type == "users":
+        users = db.query(User).filter(User.username.ilike(f"%{q}%")).all()
+
+    return templates.TemplateResponse("search_results.html", {
+        "request": request,
+        "query": q,
+        "search_type": type,
+        "projects": projects,
+        "tasks": tasks,
+        "users": users
+    })
