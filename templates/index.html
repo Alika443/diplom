@@ -163,4 +163,109 @@
         </table>
     </div>
 </div>
+
+
+<style>
+    .dashboard-lower-grid {
+        margin-top: 30px;
+    }
+
+    .info-block {
+        background-color: #ffffff;
+        border: 1px solid #151516;
+        border-radius: 8px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f3f4;
+    }
+
+    .info-body {
+        padding: 0;
+    }
+
+    /* Стиль для списка задач */
+    .task-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background 0.2s;
+    }
+
+    .task-item:hover {
+        background-color: #fcfcfc;
+    }
+
+    .task-checkbox {
+        width: 18px;
+        height: 18px;
+        border: 1px solid #151516;
+        border-radius: 4px;
+        margin-right: 15px;
+        cursor: pointer;
+    }
+
+    /* Стиль для дедлайнов */
+    .deadline-item {
+        padding: 12px 20px;
+        border-left: 4px solid #151516;
+        margin: 12px 20px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+
+    .deadline-urgent {
+        border-left-color: #dc3545;
+        background-color: #fff5f5;
+    }
+</style>
+
+<div class="row dashboard-lower-grid g-4">
+    <div class="col-lg-8">
+        <div class="info-block">
+            <div class="info-header d-flex justify-content-between align-items-center">
+                <h3 class="h6 mb-0 fw-bold">Задачи на сегодня</h3>
+                <span class="badge rounded-pill bg-dark">{{ tasks_today|length }}</span>
+            </div>
+            <div class="info-body">
+                {% for task in tasks_today %}
+                <div class="task-item">
+                    <div class="task-checkbox"></div>
+                    <div class="d-flex flex-column">
+                        <span class="fw-medium">{{ task.title }}</span>
+                        <small class="text-muted">Проект: {{ task.project_id }}</small>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">На сегодня задач нет. Отдохните!</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="info-block">
+            <div class="info-header">
+                <h3 class="h6 mb-0 fw-bold">Ближайшие дедлайны</h3>
+            </div>
+            <div class="info-body">
+                {% for proj in upcoming_deadlines %}
+                <div class="deadline-item {% if loop.first %}deadline-urgent{% endif %}">
+                    <div class="fw-bold d-block">{{ proj.title }}</div>
+                    <small class="text-danger fw-bold">
+                        {{ proj.deadline.strftime('%d %b') if proj.deadline else '—' }}
+                    </small>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">Срочных дедлайнов нет.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
