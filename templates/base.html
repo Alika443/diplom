@@ -10,6 +10,8 @@
         :root {
             --sidebar-width: 240px;
             --topbar-height: 70px;
+            --neutral-dark: #151516; 
+            --neutral-gray: #6c757d;
         }
 
         body {
@@ -33,20 +35,18 @@
             transition: transform 0.3s ease;
         }
 
-        .sidebar.hidden {
-            transform: translateX(-100%);
-        }
+        .sidebar.hidden { transform: translateX(-100%); }
 
         .sidebar-brand {
             padding: 0 25px 30px;
             font-size: 1.5rem;
             font-weight: 700;
-            color: #151516;
+            color: var(--neutral-dark);
         }
 
         .nav-link {
             padding: 12px 25px;
-            color: #6c757d;
+            color: var(--neutral-gray);
             font-weight: 500;
             transition: all 0.3s;
             text-decoration: none;
@@ -54,7 +54,7 @@
         }
 
         .nav-link:hover, .nav-link.active {
-            color: #151516;
+            color: var(--neutral-dark);
             background: #f8f9fa;
         }
 
@@ -73,9 +73,7 @@
             transition: margin-left 0.3s ease;
         }
 
-        .topbar.full-width, .main-content.full-width {
-            margin-left: 0;
-        }
+        .topbar.full-width, .main-content.full-width { margin-left: 0; }
 
         /* Поиск */
         .search-container {
@@ -121,12 +119,10 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        .search-container.active .search-categories {
-            display: flex;
-        }
+        .search-container.active .search-categories { display: flex; }
 
         .category-link {
-            color: #6c757d;
+            color: var(--neutral-gray);
             text-decoration: none;
             font-size: 0.75rem;
             font-weight: 600;
@@ -137,13 +133,39 @@
         }
 
         .category-link.active {
-            color: #151516;
-            border-bottom: 2px solid #6c757d;
+            color: var(--neutral-dark);
+            border-bottom: 2px solid var(--neutral-gray);
         }
 
-        /* Профиль */
-        .profile-dropdown .dropdown-toggle::after {
-            display: none;
+        /* Профиль и выпадающее меню */
+        .profile-dropdown .dropdown-toggle::after { display: none; }
+        
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #5145cd; /* Фиолетовый как на скрине */
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .profile-header {
+            padding: 10px 15px;
+            min-width: 250px;
+        }
+
+        .profile-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--neutral-gray);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: block;
         }
 
         .main-content {
@@ -177,7 +199,7 @@
             <form action="/search" method="get" id="searchForm">
                 <div class="search-input-group">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" name="q" class="custom-search-input" placeholder="Поиск..." autocomplete="off">
+                    <input type="text" id="searchInput" name="q" class="custom-search-input" placeholder="Поиск проектов, задач или участников..." autocomplete="off">
                 </div>
                 
                 <div class="search-categories">
@@ -191,18 +213,24 @@
 
         <div class="ms-auto dropdown profile-dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="profileMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                    <i class="fas fa-user"></i>
-                </div>
+                <div class="profile-avatar">A</div>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="profileMenu">
-                <li class="px-3 py-2">
-                    <div class="fw-bold">Администратор</div>
-                    <small class="text-muted">admin@example.com</small>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2" aria-labelledby="profileMenu">
+                <li class="profile-header">
+                    <span class="profile-title">Учетная запись</span>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="profile-avatar me-3" style="width: 45px; height: 45px;">A</div>
+                        <div>
+                            <div class="fw-bold" style="color: var(--neutral-dark); line-height: 1.2;">ALVAL</div>
+                            <small class="text-muted">alikarazakova7@gmail.com</small>
+                        </div>
+                    </div>
                 </li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i> Настройки</a></li>
-                <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Выход</a></li>
+                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-cog me-2"></i> Настройки</a></li>
+                <li><a class="dropdown-item py-2" href="#"><i class="fas fa-question-circle me-2"></i> Помощь</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Выход</a></li>
             </ul>
         </div>
     </div>
@@ -220,14 +248,12 @@
         const searchInput = document.getElementById('searchInput');
         const searchContainer = document.getElementById('searchContainer');
 
-        // Гамбургер
         toggleBtn.addEventListener('click', () => {
             sidebar.classList.toggle('hidden');
             topbar.classList.toggle('full-width');
             mainContent.classList.toggle('full-width');
         });
 
-        // Поиск
         searchInput.addEventListener('focus', () => {
             searchContainer.classList.add('active');
         });
