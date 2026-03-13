@@ -53,12 +53,18 @@
         <td style="font-size: 0.9rem;">
             {{ task.deadline.strftime('%d %b, %Y') if task.deadline else 'Нет даты' }}
         </td>
+        
         <td>
-            <span class="d-flex align-items-center" style="font-size: 0.85rem; color: #151516;">
-                <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: #adb5bd;"></i> 
-                {{ task.status }}
-            </span>
+            <form action="/tasks/update-status/{{ task.id }}" method="post" style="margin: 0;">
+                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light" style="width: 150px; font-size: 0.85rem; cursor: pointer; border-radius: 6px;">
+                    <option value="To Do" {% if task.status == 'To Do' %}selected{% endif %}>Нужно сделать</option>
+                    <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>В работе</option>
+                    <option value="Done" {% if task.status == 'Done' %}selected{% endif %}>Завершено</option>
+                    <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>Приостановлено</option>
+                </select>
+            </form>
         </td>
+
         <td class="pe-4 text-end">
             <button class="btn btn-sm text-secondary"><i class="fas fa-ellipsis-v"></i></button>
         </td>
