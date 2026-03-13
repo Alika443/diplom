@@ -68,9 +68,6 @@ async def projects_page(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         return HTMLResponse(content=f"Ошибка в проектах: {e}", status_code=500)
 
-@app.get("/tasks", response_class=HTMLResponse)
-async def tasks_page(request: Request):
-    return templates.TemplateResponse("base.html", {"request": request})
 
 @app.post("/projects/create")
 async def create_project(
@@ -147,3 +144,18 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
         "tasks": tasks,
         "users": users
     })
+
+
+@app.get("/tasks", response_class=HTMLResponse)
+async def tasks_page(request: Request, db: Session = Depends(get_db)):
+    try:
+        # Получаем реальные задачи из базы данных
+        tasks = db.query(Task).all()
+        
+        # ВАЖНО: возвращаем tasks.html, а не base.html
+        return templates.TemplateResponse("tasks.html", {
+            "request": request,
+            "tasks": tasks
+        })
+    except Exception as e:
+        return HTMLResponse(content=f"Ошибка в задачах: {e}", status_code=500)
