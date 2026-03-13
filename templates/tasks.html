@@ -71,4 +71,44 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="createTaskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Новая задача</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/tasks/create" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Название задачи</label>
+                        <input type="text" name="title" class="form-control bg-light border-0" placeholder="Что нужно сделать?" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Проект</label>
+                        <select name="project_id" class="form-select bg-light border-0">
+                            <option value="">Без проекта</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Дедлайн</label>
+                        <input type="date" name="deadline" class="form-control bg-light border-0">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn text-muted fw-bold" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn px-4" style="background: var(--neutral-dark); color: white; border-radius: 8px;">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('button.btn.border.shadow-sm').setAttribute('data-bs-toggle', 'modal');
+    document.querySelector('button.btn.border.shadow-sm').setAttribute('data-bs-target', '#createTaskModal');
+</script>
 {% endblock %}

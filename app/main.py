@@ -148,14 +148,34 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
 
 @app.get("/tasks", response_class=HTMLResponse)
 async def tasks_page(request: Request, db: Session = Depends(get_db)):
-    try:
-        # Получаем реальные задачи из базы данных
-        tasks = db.query(Task).all()
-        
-        # ВАЖНО: возвращаем tasks.html, а не base.html
-        return templates.TemplateResponse("tasks.html", {
-            "request": request,
-            "tasks": tasks
-        })
-    except Exception as e:
-        return HTMLResponse(content=f"Ошибка в задачах: {e}", status_code=500)
+    # Загружаем задачи и проекты (для выпадающего списка в форме)
+    tasks = db.query(Task).all()
+    projects = db.query(Project).all() 
+    return templates.TemplateResponse("tasks.html", {
+        "request": request,
+        "tasks": tasks,
+        "projects": projects
+    })
+
+@app.post("/tasks/create")
+async def create_task(
+    title: str = Form(...),
+    project_id: int = Form(None),
+    deadline: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    # Преобразуем строку даты в объект date, если она передана
+    task_deadline = None
+    if deadline:
+        task_deadline = datetime.strptime(deadline, '%Y-%m-%d').date()
+    
+    new_task = Task(
+        title=title,
+        project_id=project_id if project_id else None,
+        deadline=task_deadline,
+        status="To Do" # Начальный статус
+    )
+    
+    db.add(new_task)
+    db.commit()
+    return responses.RedirectResponse(url="/tasks", status_code=303)
