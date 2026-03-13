@@ -157,6 +157,39 @@ async def tasks_page(request: Request, db: Session = Depends(get_db)):
         "projects": projects
     })
 
+
+@app.post("/tasks/create")
+async def create_task(
+    title: str = Form(...),
+    project_id: str = Form(None),  # Приходит как строка из формы
+    deadline: str = Form(None),
+    db: Session = Depends(get_db)
+):
+    # Преобразуем project_id в число или None
+    p_id = int(project_id) if project_id and project_id.isdigit() else None
+    
+    # Преобразуем строку даты в объект date
+    task_deadline = None
+    if deadline:
+        try:
+            task_deadline = datetime.strptime(deadline, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    
+    # Создаем новую задачу
+    new_task = Task(
+        title=title,
+        project_id=p_id,
+        deadline=task_deadline,
+        status="To Do"  # Статус по умолчанию
+    )
+    
+    db.add(new_task)
+    db.commit()
+    
+    # После создания возвращаемся на страницу задач
+    return responses.RedirectResponse(url="/tasks", status_code=303)
+
 @app.post("/tasks/create")
 async def create_task(
     title: str = Form(...),
@@ -178,4 +211,20 @@ async def create_task(
     
     db.add(new_task)
     db.commit()
+    return responses.RedirectResponse(url="/tasks", status_code=303)
+
+
+@app.post("/tasks/update-status/{task_id}")
+async def update_task_status(
+    task_id: int, 
+    status: str = Form(...), 
+    db: Session = Depends(get_db)
+):
+    # Ищем задачу в базе
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if task:
+        task.status = status
+        db.commit()
+    
+    # Возвращаемся обратно на страницу задач
     return responses.RedirectResponse(url="/tasks", status_code=303)

@@ -50,10 +50,12 @@
                 <span style="font-size: 0.9rem;">{{ task.owner.username if task.owner else 'Не назначен' }}</span>
             </div>
         </td>
-        <td style="font-size: 0.9rem;">{{ task.deadline.strftime('%d %b, %Y') if task.deadline else 'Нет даты' }}</td>
+        <td style="font-size: 0.9rem;">
+            {{ task.deadline.strftime('%d %b, %Y') if task.deadline else 'Нет даты' }}
+        </td>
         <td>
             <span class="d-flex align-items-center" style="font-size: 0.85rem; color: #151516;">
-                <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: {% if task.status == 'Done' %}#28a745{% else %}#adb5bd{% endif %};"></i> 
+                <i class="fas fa-circle me-2" style="font-size: 0.5rem; color: #adb5bd;"></i> 
                 {{ task.status }}
             </span>
         </td>
