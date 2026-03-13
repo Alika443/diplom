@@ -32,9 +32,11 @@
                 </thead>
                 <tbody>
     {% for task in tasks %}
-    <tr class="border-bottom">
+    <tr class="border-bottom {% if task.status == 'Done' %}opacity-50{% endif %}" style="transition: all 0.3s ease;">
         <td class="ps-4 py-3">
-            <div class="fw-bold" style="color: var(--neutral-dark);">{{ task.title }}</div>
+            <div class="fw-bold" style="color: var(--neutral-dark);">
+                {{ task.title }}
+            </div>
             <small class="text-muted">ID-{{ task.id }}</small>
         </td>
         <td>
@@ -56,7 +58,7 @@
         
         <td>
             <form action="/tasks/update-status/{{ task.id }}" method="post" style="margin: 0;">
-                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light" style="width: 150px; font-size: 0.85rem; cursor: pointer; border-radius: 6px;">
+                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light shadow-none" style="width: 150px; font-size: 0.85rem; cursor: pointer; border-radius: 6px;">
                     <option value="To Do" {% if task.status == 'To Do' %}selected{% endif %}>Нужно сделать</option>
                     <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>В работе</option>
                     <option value="Done" {% if task.status == 'Done' %}selected{% endif %}>Завершено</option>
