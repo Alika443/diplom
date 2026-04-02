@@ -181,10 +181,18 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand text-uppercase">ProjectHub</div>
         <nav class="nav flex-column">
-            <a class="nav-link active" href="/"><i class="fas fa-home me-2"></i> Главная</a>
-            <a class="nav-link" href="/projects"><i class="fas fa-project-diagram me-2"></i> Проекты</a>
-            <a class="nav-link" href="/tasks"><i class="fas fa-check-square me-2"></i> Задачи</a>
-            <a class="nav-link" href="/users"><i class="fas fa-users me-2"></i> Участники</a>
+            <a class="nav-link {% if request.url.path == '/' %}active{% endif %}" href="/">
+                <i class="fas fa-home me-2"></i> Главная
+            </a>
+            <a class="nav-link {% if request.url.path == '/projects' %}active{% endif %}" href="/projects">
+                <i class="fas fa-project-diagram me-2"></i> Проекты
+            </a>
+            <a class="nav-link {% if request.url.path.startswith('/tasks') %}active{% endif %}" href="/tasks">
+                <i class="fas fa-check-square me-2"></i> Задачи
+            </a>
+            <a class="nav-link {% if request.url.path == '/users' %}active{% endif %}" href="/users">
+                <i class="fas fa-users me-2"></i> Участники
+            </a>
             <hr>
             <a class="nav-link text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i> Выход</a>
         </nav>
