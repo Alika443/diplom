@@ -265,18 +265,16 @@ async def users_page(request: Request, db: Session = Depends(get_db)):
     stats = {}
     
     for user in users:
-        # Проверяем, есть ли атрибут, чтобы не падало с ошибкой
-        if hasattr(Task, 'owner_id'):
-            t_count = db.query(Task).filter(Task.owner_id == user.id).count()
-        elif hasattr(Task, 'user_id'):
-            t_count = db.query(Task).filter(Task.user_id == user.id).count()
-        else:
-            t_count = 0 # Если связи еще нет, просто пишем 0
-            
-        # То же самое для проектов
-        p_count = db.query(Project).filter(Project.owner_id == user.id).count() if hasattr(Project, 'owner_id') else 0
-        
-        stats[user.id] = {"tasks": t_count, "projects": p_count}
+    # Считаем задачи (как сейчас)
+        t_count = db.query(Task).filter(Task.owner_id == user.id).count()
+    
+    # Считаем уникальные проекты, в которых у пользователя есть задачи
+        p_count = db.query(Task.project_id).filter(Task.owner_id == user.id).distinct().count()
+    
+    stats[user.id] = {
+        "tasks": t_count,
+        "projects": p_count
+    }
 
     return templates.TemplateResponse("users.html", {
         "request": request, 
