@@ -247,3 +247,9 @@ async def delete_task(task_id: int, db: Session = Depends(get_db)):
         db.delete(task)
         db.commit()
     return responses.RedirectResponse(url="/tasks", status_code=303)
+
+
+@app.get("/users", response_class=HTMLResponse)
+async def users_page(request: Request, db: Session = Depends(get_db)):
+    users = db.query(User).all()  # Предполагаем, что модель User уже есть
+    return templates.TemplateResponse("users.html", {"request": request, "users": users})
