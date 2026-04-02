@@ -177,12 +177,16 @@ async def tasks_page(request: Request, status: str = None, db: Session = Depends
 @app.post("/tasks/create")
 async def create_task(
     title: str = Form(...),
-    project_id: str = Form(None),  # Приходит как строка из формы
+    project_id: str = Form(None),
+    owner_id: str = Form(None),    # 1. Добавляем получение ID исполнителя
     deadline: str = Form(None),
     db: Session = Depends(get_db)
 ):
     # Преобразуем project_id в число или None
     p_id = int(project_id) if project_id and project_id.isdigit() else None
+    
+    # 2. Преобразуем owner_id в число или None
+    o_id = int(owner_id) if owner_id and owner_id.isdigit() else None
     
     # Преобразуем строку даты в объект date
     task_deadline = None
@@ -196,14 +200,14 @@ async def create_task(
     new_task = Task(
         title=title,
         project_id=p_id,
+        owner_id=o_id,            # 3. ПЕРЕДАЕМ ИСПОЛНИТЕЛЯ В БАЗУ
         deadline=task_deadline,
-        status="To Do"  # Статус по умолчанию
+        status="To Do"
     )
     
     db.add(new_task)
     db.commit()
     
-    # После создания возвращаемся на страницу задач
     return responses.RedirectResponse(url="/tasks", status_code=303)
 
 @app.post("/tasks/create")
