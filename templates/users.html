@@ -27,20 +27,28 @@
                     <h5 class="fw-bold mb-1" style="color: var(--neutral-dark);">{{ user.username }}</h5>
                     <p class="text-muted small mb-3">{{ user.email }}</p>
                     
-                    <span class="badge bg-light text-dark border mb-4 px-3 py-2" style="border-radius: 20px; font-weight: 500;">
-                        Участник
-                    </span>
+                    <div class="mb-4">
+    <form action="/users/update-role/{{ user.id }}" method="post" style="margin: 0;">
+        <select name="role" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light mx-auto shadow-none" 
+                style="width: 140px; font-size: 0.8rem; border-radius: 20px; text-align: center; cursor: pointer; font-weight: 600;">
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+            <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Менеджер</option>
+            <option value="developer" {% if user.role == 'developer' %}selected{% endif %}>Разработчик</option>
+            <option value="viewer" {% if user.role == 'viewer' %}selected{% endif %}>Наблюдатель</option>
+        </select>
+    </form>
+</div>
 
                     <div class="d-flex justify-content-center gap-4 pt-3 border-top">
-                        <div class="text-center">
-                            <div class="fw-bold" style="font-size: 1rem;">{{ (user.id * 2) + 1 }}</div>
-                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Задач</div>
-                        </div>
-                        <div class="text-center border-start ps-4">
-                            <div class="fw-bold" style="font-size: 1rem;">{{ user.id }}</div>
-                            <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Проектов</div>
-                        </div>
-                    </div>
+    <div class="text-center">
+        <div class="fw-bold" style="font-size: 1rem;">{{ stats[user.id].tasks }}</div>
+        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Задач</div>
+    </div>
+    <div class="text-center border-start ps-4">
+        <div class="fw-bold" style="font-size: 1rem;">{{ stats[user.id].projects }}</div>
+        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Проектов</div>
+    </div>
+</div>
                 </div>
                 
                 <div class="card-footer bg-transparent border-0 pb-4 text-center">
