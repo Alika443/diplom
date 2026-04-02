@@ -12,10 +12,26 @@
     </div>
 
     <div class="d-flex gap-2 mb-4">
-        <button class="btn btn-sm border-bottom pb-1 px-0 me-3 shadow-none active-filter" style="border: none; border-radius: 0; font-weight: 600; color: var(--neutral-dark); border-bottom: 2px solid var(--neutral-dark) !important;">Все задачи</button>
-        <button class="btn btn-sm pb-1 px-0 me-3 shadow-none" style="border: none; color: var(--neutral-gray); font-weight: 500;">В работе</button>
-        <button class="btn btn-sm pb-1 px-0 shadow-none" style="border: none; color: var(--neutral-gray); font-weight: 500;">Завершенные</button>
-    </div>
+    <a href="/tasks" class="btn btn-sm pb-1 px-0 me-3 shadow-none {% if not current_status %}active-filter{% endif %}" 
+       style="border: none; font-weight: {% if not current_status %}600{% else %}500{% endif %}; color: {% if not current_status %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if not current_status %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
+       Все задачи
+    </a>
+
+    <a href="/tasks?status=In Progress" class="btn btn-sm pb-1 px-0 me-3 shadow-none" 
+       style="border: none; font-weight: {% if current_status == 'In Progress' %}600{% else %}500{% endif %}; color: {% if current_status == 'In Progress' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'In Progress' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
+       В работе
+    </a>
+
+    <a href="/tasks?status=Done" class="btn btn-sm pb-1 px-0 me-3 shadow-none" 
+       style="border: none; font-weight: {% if current_status == 'Done' %}600{% else %}500{% endif %}; color: {% if current_status == 'Done' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'Done' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
+       Завершенные
+    </a>
+
+    <a href="/tasks?status=On Hold" class="btn btn-sm pb-1 px-0 shadow-none" 
+       style="border: none; font-weight: {% if current_status == 'On Hold' %}600{% else %}500{% endif %}; color: {% if current_status == 'On Hold' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'On Hold' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
+       Приостановленные
+    </a>
+</div>
 
     <div class="card border-0 shadow-sm" style="border-radius: 12px;">
         <div class="table-responsive">

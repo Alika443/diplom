@@ -147,15 +147,25 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
 
 
 @app.get("/tasks", response_class=HTMLResponse)
-async def tasks_page(request: Request, db: Session = Depends(get_db)):
-    # Загружаем задачи и проекты (для выпадающего списка в форме)
-    tasks = db.query(Task).all()
-    projects = db.query(Project).all() 
-    return templates.TemplateResponse("tasks.html", {
-        "request": request,
-        "tasks": tasks,
-        "projects": projects
-    })
+async def tasks_page(request: Request, status: str = None, db: Session = Depends(get_db)):
+    try:
+        query = db.query(Task)
+        
+        # Если передан статус, фильтруем задачи
+        if status:
+            query = query.filter(Task.status == status)
+            
+        tasks = query.all()
+        projects = db.query(Project).all()
+        
+        return templates.TemplateResponse("tasks.html", {
+            "request": request,
+            "tasks": tasks,
+            "projects": projects,
+            "current_status": status # Передаем текущий фильтр в шаблон
+        })
+    except Exception as e:
+        return HTMLResponse(content=f"Ошибка: {e}", status_code=500)
 
 
 @app.post("/tasks/create")
