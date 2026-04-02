@@ -68,8 +68,12 @@
         </td>
 
         <td class="pe-4 text-end">
-            <button class="btn btn-sm text-secondary"><i class="fas fa-ellipsis-v"></i></button>
-        </td>
+    <form action="/tasks/delete/{{ task.id }}" method="post" style="display: inline;" onsubmit="return confirm('Удалить эту задачу?')">
+        <button type="submit" class="btn btn-sm text-danger shadow-none" title="Удалить">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </form>
+</td>
     </tr>
     {% else %}
     <tr>

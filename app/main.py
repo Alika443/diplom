@@ -228,3 +228,12 @@ async def update_task_status(
     
     # Возвращаемся обратно на страницу задач
     return responses.RedirectResponse(url="/tasks", status_code=303)
+
+
+@app.post("/tasks/delete/{task_id}")
+async def delete_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(Task).filter(Task.id == task_id).first()
+    if task:
+        db.delete(task)
+        db.commit()
+    return responses.RedirectResponse(url="/tasks", status_code=303)
