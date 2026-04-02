@@ -148,6 +148,10 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
 
 @app.get("/tasks", response_class=HTMLResponse)
 async def tasks_page(request: Request, status: str = None, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    tasks = db.query(Task).all()
+    users = db.query(User).all()  # <--- БЕЗ ЭТОЙ СТРОКИ СПИСОК БУДЕТ ПУСТЫМ
+    projects = db.query(Project).all()
     try:
         query = db.query(Task)
         
@@ -161,11 +165,13 @@ async def tasks_page(request: Request, status: str = None, db: Session = Depends
         return templates.TemplateResponse("tasks.html", {
             "request": request,
             "tasks": tasks,
+            "users": users,
             "projects": projects,
             "current_status": status # Передаем текущий фильтр в шаблон
         })
     except Exception as e:
         return HTMLResponse(content=f"Ошибка: {e}", status_code=500)
+
 
 
 @app.post("/tasks/create")
