@@ -251,5 +251,18 @@ async def delete_task(task_id: int, db: Session = Depends(get_db)):
 
 @app.get("/users", response_class=HTMLResponse)
 async def users_page(request: Request, db: Session = Depends(get_db)):
-    users = db.query(User).all()  # Предполагаем, что модель User уже есть
-    return templates.TemplateResponse("users.html", {"request": request, "users": users})
+    # Получаем всех пользователей из базы
+    users = db.query(User).all() 
+    return templates.TemplateResponse("users.html", {
+        "request": request, 
+        "users": users
+    })
+
+
+@app.post("/users/create")
+async def create_user(username: str = Form(...), email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    # Здесь должна быть логика хеширования пароля, но для теста пока так
+    new_user = User(username=username, email=email, hashed_password=password) 
+    db.add(new_user)
+    db.commit()
+    return responses.RedirectResponse(url="/users", status_code=303)
