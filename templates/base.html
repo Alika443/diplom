@@ -207,8 +207,14 @@
             <form action="/search" method="get" id="searchForm">
                 <div class="search-input-group">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" name="q" class="custom-search-input" placeholder="Поиск проектов, задач или участников..." autocomplete="off">
-                </div>
+<form action="/search" method="get" class="flex-grow-1 mx-4">
+    <div class="position-relative">
+        <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+        <input type="text" name="q" class="form-control border-0 bg-light ps-5 py-2 shadow-none" 
+               placeholder="Поиск проектов, задач или участников..." 
+               style="border-radius: 10px;" value="{{ query if query else '' }}">
+    </div>
+</form>                </div>
                 
                 <div class="search-categories">
                     <span class="category-link active">Все</span>

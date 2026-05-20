@@ -82,7 +82,20 @@
     .status-active { background-color: #e3f2fd; color: #0d47a1; }
     .status-new { background-color: #e8f5e9; color: #1b5e20; }
 
-    
+    /* Стиль для текста выполненной задачи */
+    .task-done-text {
+        text-decoration: line-through; /* Зачеркивание */
+        opacity: 0.5;                /* Тусклость */
+        transition: all 0.3s ease;   /* Плавный переход */
+    }
+
+    /* Стиль для самого квадратика (чекбокса) */
+    .task-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #000000; /* Цвет закрашивания */
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -236,13 +249,21 @@
             </div>
             <div class="info-body">
                 {% for task in tasks_today %}
-                <div class="task-item">
-                    <div class="task-checkbox"></div>
-                    <div class="d-flex flex-column">
-                        <span class="fw-medium">{{ task.title }}</span>
-                        <small class="text-muted">Проект: {{ task.project_id }}</small>
-                    </div>
-                </div>
+                <div class="d-flex align-items-start mb-3 bg-white p-2" style="border-radius: 8px;">
+    <div class="me-3 pt-1"> 
+        <input type="checkbox" class="task-checkbox" 
+               onclick="toggleTask(this, 'task-text-{{ task.id }}')">
+    </div>
+    
+    <div id="task-text-{{ task.id }}" class="flex-grow-1">
+        <div class="fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.2;">
+            {{ task.title }}
+        </div>
+        <div class="text-muted" style="font-size: 0.8rem;">
+            Проект: {{ task.project_id if task.project_id else 'None' }}
+        </div>
+    </div>
+</div>
                 {% else %}
                 <div class="p-4 text-center text-muted">На сегодня задач нет. Отдохните!</div>
                 {% endfor %}
@@ -270,4 +291,18 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleTask(checkbox, textId) {
+    const taskText = document.getElementById(textId);
+    
+    if (checkbox.checked) {
+        // Если галочка стоит — делаем тусклым и зачеркиваем
+        taskText.classList.add('task-done-text');
+    } else {
+        // Если сняли — возвращаем как было
+        taskText.classList.remove('task-done-text');
+    }
+}
+</script>
 {% endblock %}

@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, date
-from fastapi import FastAPI, Request, Depends, Form, responses
+from fastapi import FastAPI, Request, Depends, Form, responses, Query
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -226,6 +226,7 @@ async def create_task(
         title=title,
         project_id=project_id if project_id else None,
         deadline=task_deadline,
+        owner_id=o_id,
         status="To Do" # Начальный статус
     )
     
@@ -290,3 +291,29 @@ async def create_user(username: str = Form(...), email: str = Form(...), passwor
     db.add(new_user)
     db.commit()
     return responses.RedirectResponse(url="/users", status_code=303)
+
+
+
+@app.get("/search", response_class=HTMLResponse)
+async def global_search(request: Request, q: str = Query(""), db: Session = Depends(get_db)):
+    results = {"projects": [], "tasks": [], "users": []}
+    
+    # Очищаем запрос от пробелов
+    search_query = q.strip() if q else ""
+    
+    if search_query:
+        print(f"\n--- ВЫПОЛНЯЕТСЯ ПОИСК: '{search_query}' ---")
+        
+        # Ищем в моделях (убедись, что импорты моделей Task, Project, User верны)
+        results["projects"] = db.query(models.project.Project).filter(models.project.Project.title.ilike(f"%{search_query}%")).all()
+        results["tasks"] = db.query(models.task.Task).filter(models.task.Task.title.ilike(f"%{search_query}%")).all()
+        results["users"] = db.query(models.user.User).filter(models.user.User.username.ilike(f"%{search_query}%")).all()
+        
+        print(f"Найдено: Задач({len(results['tasks'])}), Проектов({len(results['projects'])})")
+    
+    return templates.TemplateResponse("search_results.html", {
+        "request": request,
+        "query": search_query,
+        "results": results
+    })
+    

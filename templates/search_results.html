@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+{% set results = results | default({'projects': [], 'tasks': [], 'users': []}) %}
+<div class="container-fluid">
+    <h2 class="fw-bold mb-4">Результаты поиска для: "{{ query | default('') }}"</h2>
+
+    {% if not results.projects and not results.tasks and not results.users %}
+        <div class="text-center py-5">
+            <h4 class="text-muted">Ничего не найдено</h4>
+        </div>
+    {% else %}
+        
+        {% if results.projects %}
+        <h5 class="fw-bold mt-4">Проекты</h5>
+        <div class="list-group mb-4">
+            {% for p in results.projects %}
+            <a href="/projects" class="list-group-item list-group-item-action border-0 shadow-sm mb-2" style="border-radius: 10px;">
+                {{ p.title }}
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if results.tasks %}
+        <h5 class="fw-bold mt-4">Задачи</h5>
+        <div class="list-group mb-4">
+            {% for t in results.tasks %}
+            <a href="/tasks" class="list-group-item list-group-item-action border-0 shadow-sm mb-2" style="border-radius: 10px;">
+                {{ t.title }} <span class="badge bg-light text-dark ms-2">{{ t.status }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if results.users %}
+        <h5 class="fw-bold mt-4">Участники</h5>
+        <div class="list-group mb-4">
+            {% for u in results.users %}
+            <a href="/users" class="list-group-item list-group-item-action border-0 shadow-sm mb-2" style="border-radius: 10px;">
+                {{ u.username }} ({{ u.email }})
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    {% endif %}
+</div>
+{% endblock %}
