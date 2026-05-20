@@ -9,6 +9,14 @@ from sqlalchemy.orm import Session
 from app.database import engine, Base, get_db
 from app.models import Project, Task, User 
 
+from fastapi import Response
+from fastapi.responses import RedirectResponse
+
+# Импортируем нашу логику безопасности
+from app.core.security import get_password_hash, verify_password, create_access_token
+from app.services.auth_services import get_current_user
+from app.models.user import User # Убедись, что путь к модели User точный
+
 # Создаем таблицы в БД
 Base.metadata.create_all(bind=engine)
 
@@ -22,39 +30,107 @@ templates = Jinja2Templates(directory=templates_path)
 
 # --- МАРШРУТЫ (ROUTES) ---
 
-@app.get("/")
-def read_root(request: Request, db: Session = Depends(get_db)):
-    # 1. Считаем общую статистику для верхних карточек
-    total_projects = db.query(Project).count()
-    active_tasks_count = db.query(Task).filter(Task.status != "Done").count()
-    total_users = db.query(User).count()
+# --- СТРАНИЦЫ АВТОРИЗАЦИИ (ОТОБРАЖЕНИЕ ФОРМ) ---
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+# --- ОБРАБОТКА ДАННЫХ ИЗ ФОРМ (POST-ЗАПРОСЫ) ---
+
+@app.post("/register")
+async def handle_register(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Проверяем, нет ли уже пользователя с таким email
+    existing_user = db.query(User).filter(User.email == email).first()
+    if existing_user:
+        # Для диплома вернем простую ошибку, позже можно сделать красивее
+        return templates.TemplateResponse("register.html", {
+            "request": request, 
+            "error": "Пользователь с таким email уже зарегистрирован"
+        })
     
-    # 2. Подготавливаем списки для основной части экрана
-    today = date.today()
+    # Хэшируем пароль перед записью в базу!
+    hashed_pwd = get_password_hash(password)
     
-    # Последние 5 проектов
-    recent_projects = db.query(Project).order_by(Project.id.desc()).limit(5).all()
+    # Создаем нового пользователя
+    new_user = User(username=username, email=email, hashed_password=hashed_pwd)
+    db.add(new_user)
+    db.commit()
     
-    # Задачи на сегодня (невыполненные)
-    tasks_today = db.query(Task).filter(Task.status != "Done").limit(5).all()
+    # После успешной регистрации отправляем на страницу входа
+    return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.post("/login")
+async def handle_login(
+    response: Response,
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+    # Ищем пользователя по email
+    user = db.query(User).filter(User.email == email).first()
     
-    # Ближайшие дедлайны (проекты, у которых дедлайн сегодня или позже)
-    upcoming_deadlines = db.query(Project).filter(
-        Project.deadline >= today
-    ).order_by(Project.deadline.asc()).limit(3).all()
+    # Если не нашли или хэш пароля не совпал
+    if not user or not verify_password(password, user.hashed_password):
+        return templates.TemplateResponse("login.html", {
+            "request": request, 
+            "error": "Неверный email или пароль"
+        })
     
-    # 3. Отправляем ВСЕ данные в один шаблон одним ответом
+    # Создаем JWT-токен, зашифровав туда ID пользователя
+    access_token = create_access_token(data={"user_id": user.id})
+    
+    # Создаем редирект на главную страницу
+    redirect = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    
+    # Записываем токен в Cookies браузера
+    redirect.set_cookie(
+        key="access_token", 
+        value=access_token, 
+        httponly=True, # Защита от кражи токена через JavaScript скрипты
+        max_age=86400  # Время жизни куки в секундах (1 день)
+    )
+    return redirect
+
+
+@app.get("/logout")
+async def handle_logout():
+    # При выходе просто удаляем куку с токеном из браузера
+    redirect = RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    redirect.delete_cookie(key="access_token")
+    return redirect
+
+@app.get("/", response_class=HTMLResponse)
+async def index_page(
+    request: Request, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user) # Перехватываем пользователя
+):
+    # Если пользователь не залогинен, принудительно отправляем его на форму входа
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+        
+    # Твой существующий код сбора статистики для главной страницы...
+    # (проекты, задачи, команда и т.д.)
+    
+    # В словарь для шаблона обязательно передаем current_user, чтобы в шапке отображалось имя!
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "stats": {
-            "projects": total_projects,
-            "tasks": active_tasks_count,
-            "users": total_users,
-            "urgent": active_tasks_count
-        },
-        "recent_projects": recent_projects,
-        "tasks_today": tasks_today,
-        "upcoming_deadlines": upcoming_deadlines
+        "user": current_user,
+        # ... твои остальные переменные (tasks, projects) ...
     })
 
 @app.get("/projects", response_class=HTMLResponse)
