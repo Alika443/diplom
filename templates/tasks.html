@@ -3,149 +3,241 @@
 {% block title %}Задачи - ProjectHub{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<style>
+    /* Главная кнопка */
+    .btn-create-task {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: background-color 0.2s !important;
+        box-shadow: 0 4px 6px rgba(78, 115, 223, 0.15);
+    }
+
+    .btn-create-task:hover {
+        background-color: #375add !important;
+    }
+
+    /* Стиль вкладок фильтрации */
+    .filter-tab {
+        border: none !important;
+        font-weight: 500;
+        color: var(--neutral-gray) !important;
+        position: relative;
+        padding-bottom: 8px !important;
+        transition: color 0.2s;
+    }
+
+    .filter-tab:hover {
+        color: var(--neutral-dark) !important;
+    }
+
+    .filter-tab.active-filter {
+        font-weight: 600;
+        color: var(--neutral-dark) !important;
+    }
+
+    .filter-tab.active-filter::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--primary-blue);
+    }
+
+    /* Кастомный селект статуса в таблице */
+    .status-select {
+        width: 160px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 20px !important;
+        padding: 5px 12px 5px 12px;
+        background-position: right 12px center;
+        border: 1px solid #e3e6f0 !important;
+    }
+    
+    .status-select-todo { background-color: #f1f5f9; color: #475569; }
+    .status-select-progress { background-color: var(--light-blue); color: var(--primary-blue); }
+    .status-select-done { background-color: #def7ec; color: #03543f; }
+    .status-select-hold { background-color: #fef3c7; color: #d97706; }
+
+    /* Модальные окна */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .modal-input-field {
+        border: 1px solid #e3e6f0 !important;
+        background-color: #f8fafc !important;
+        border-radius: 8px !important;
+        padding: 10px 14px;
+    }
+
+    .modal-input-field:focus {
+        border-color: #bac8f3 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15) !important;
+    }
+
+    .btn-save-task {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .btn-save-task:hover {
+        background-color: #375add !important;
+    }
+</style>
+
+<div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold" style="color: var(--neutral-dark);">Задачи</h2>
-        <button class="btn border shadow-sm px-4" 
-        data-bs-toggle="modal" 
-        data-bs-target="#createTaskModal"
-        style="background: #ffffff; color: var(--neutral-dark); border-radius: 8px;">
-    <i class="fas fa-plus me-2"></i> Новая задача
-</button>
+        <h2 class="h4 fw-bold text-dark mb-0" style="letter-spacing: -0.5px;">Задачи</h2>
+        <button class="btn btn-create-task" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+            <i class="fas fa-plus me-2"></i> Новая задача
+        </button>
     </div>
 
-    <div class="d-flex gap-2 mb-4">
-    <a href="/tasks" class="btn btn-sm pb-1 px-0 me-3 shadow-none {% if not current_status %}active-filter{% endif %}" 
-       style="border: none; font-weight: {% if not current_status %}600{% else %}500{% endif %}; color: {% if not current_status %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if not current_status %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
-       Все задачи
-    </a>
+    <div class="d-flex gap-2 mb-4 border-bottom pb-0" style="border-color: #e3e6f0 !important;">
+        <a href="/tasks" class="btn btn-sm filter-tab shadow-none {% if not current_status %}active-filter{% endif %} me-3">
+            Все задачи
+        </a>
+        <a href="/tasks?status=In Progress" class="btn btn-sm filter-tab shadow-none {% if current_status == 'In Progress' %}active-filter{% endif %} me-3">
+            В работе
+        </a>
+        <a href="/tasks?status=Done" class="btn btn-sm filter-tab shadow-none {% if current_status == 'Done' %}active-filter{% endif %} me-3">
+            Завершенные
+        </a>
+        <a href="/tasks?status=On Hold" class="btn btn-sm filter-tab shadow-none {% if current_status == 'On Hold' %}active-filter{% endif %}">
+            Приостановленные
+        </a>
+    </div>
 
-    <a href="/tasks?status=In Progress" class="btn btn-sm pb-1 px-0 me-3 shadow-none" 
-       style="border: none; font-weight: {% if current_status == 'In Progress' %}600{% else %}500{% endif %}; color: {% if current_status == 'In Progress' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'In Progress' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
-       В работе
-    </a>
-
-    <a href="/tasks?status=Done" class="btn btn-sm pb-1 px-0 me-3 shadow-none" 
-       style="border: none; font-weight: {% if current_status == 'Done' %}600{% else %}500{% endif %}; color: {% if current_status == 'Done' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'Done' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
-       Завершенные
-    </a>
-
-    <a href="/tasks?status=On Hold" class="btn btn-sm pb-1 px-0 shadow-none" 
-       style="border: none; font-weight: {% if current_status == 'On Hold' %}600{% else %}500{% endif %}; color: {% if current_status == 'On Hold' %}var(--neutral-dark){% else %}var(--neutral-gray){% endif %}; {% if current_status == 'On Hold' %}border-bottom: 2px solid var(--neutral-dark) !important; border-radius: 0;{% endif %}">
-       Приостановленные
-    </a>
-</div>
-
-    <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05) !important;">
         <div class="table-responsive">
             <table class="table align-middle mb-0" style="background: #ffffff;">
-                <thead style="background: #f8f9fa;">
+                <thead style="background: #f8fafc;">
                     <tr>
-                        <th class="ps-4 py-3" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Название задачи</th>
-                        <th class="py-3" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Проект</th>
-                        <th class="py-3" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Исполнитель</th>
-                        <th class="py-3" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Дедлайн</th>
-                        <th class="py-3" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Статус</th>
-                        <th class="pe-4 py-3 text-end" style="font-size: 0.75rem; text-transform: uppercase; color: var(--neutral-gray);">Действие</th>
+                        <th class="ps-4 py-3 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Название задачи</th>
+                        <th class="py-3 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Проект</th>
+                        <th class="py-3 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Исполнитель</th>
+                        <th class="py-3 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Дедлайн</th>
+                        <th class="py-3 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Статус</th>
+                        <th class="pe-4 py-3 text-end text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px;">Действие</th>
                     </tr>
                 </thead>
                 <tbody>
-    {% for task in tasks %}
-    <tr class="border-bottom {% if task.status == 'Done' %}opacity-50{% endif %}" style="transition: all 0.3s ease;">
-        <td class="ps-4 py-3">
-            <div class="fw-bold" style="color: var(--neutral-dark);">
-                {{ task.title }}
-            </div>
-            <small class="text-muted">ID-{{ task.id }}</small>
-        </td>
-        <td>
-            <span class="badge border text-dark font-weight-normal" style="background: #f1f3f4; border-radius: 6px;">
-                {{ task.project.title if task.project else 'Без проекта' }}
-            </span>
-        </td>
-        <td>
-            <div class="d-flex align-items-center">
-                <div class="rounded-circle me-2" style="width: 24px; height: 24px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 0.7rem;">
-                    {{ task.owner.username[0] if task.owner else '?' }}
-                </div>
-                <span style="font-size: 0.9rem;">{{ task.owner.username if task.owner else 'Не назначен' }}</span>
-            </div>
-        </td>
-        <td style="font-size: 0.9rem;">
-            {{ task.deadline.strftime('%d %b, %Y') if task.deadline else 'Нет даты' }}
-        </td>
-        
-        <td>
-            <form action="/tasks/update-status/{{ task.id }}" method="post" style="margin: 0;">
-                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light shadow-none" style="width: 150px; font-size: 0.85rem; cursor: pointer; border-radius: 6px;">
-                    <option value="To Do" {% if task.status == 'To Do' %}selected{% endif %}>Нужно сделать</option>
-                    <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>В работе</option>
-                    <option value="Done" {% if task.status == 'Done' %}selected{% endif %}>Завершено</option>
-                    <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>Приостановлено</option>
-                </select>
-            </form>
-        </td>
+                    {% for task in tasks %}
+                    <tr class="border-bottom {% if task.status == 'Done' %}opacity-50{% endif %}" style="transition: all 0.3s ease; border-color: #f1f5f9 !important;">
+                        <td class="ps-4 py-3">
+                            <div class="fw-bold {% if task.status == 'Done' %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}" style="font-size: 0.95rem;">
+                                {{ task.title }}
+                            </div>
+                            <small class="text-muted" style="font-size: 0.8rem;">ID-{{ task.id }}</small>
+                        </td>
+                        <td>
+                            <span class="badge font-weight-normal px-2.5 py-1.5 text-dark" style="background: #f1f5f9; border-radius: 6px; font-size: 0.8rem; font-weight: 500;">
+                                <i class="fas fa-folder me-1 text-muted" style="font-size: 0.75rem;"></i> {{ task.project.title if task.project else 'Без проекта' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle me-2 fw-bold text-white" style="width: 26px; height: 26px; background: #bac8f3; color: var(--primary-blue) !important; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+                                    {{ task.owner.username[0].upper() if task.owner else '?' }}
+                                </div>
+                                <span class="text-dark" style="font-size: 0.9rem;">{{ task.owner.username if task.owner else 'Не назначен' }}</span>
+                            </div>
+                        </td>
+                        <td class="text-muted" style="font-size: 0.9rem;">
+                            <i class="far fa-calendar-alt me-1" style="font-size: 0.85rem;"></i>
+                            {{ task.deadline.strftime('%d %b, %Y') if task.deadline else 'Нет даты' }}
+                        </td>
+                        
+                        <td>
+                            <form action="/tasks/update-status/{{ task.id }}" method="post" style="margin: 0;">
+                                <select name="status" onchange="this.form.submit()" class="form-select form-select-sm status-select shadow-none {% if task.status == 'To Do' %}status-select-todo{% elif task.status == 'In Progress' %}status-select-progress{% elif task.status == 'Done' %}status-select-done{% else %}status-select-hold{% endif %}">
+                                    <option value="To Do" {% if task.status == 'To Do' %}selected{% endif %}>Нужно сделать</option>
+                                    <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>В работе</option>
+                                    <option value="Done" {% if task.status == 'Done' %}selected{% endif %}>Завершено</option>
+                                    <option value="On Hold" {% if task.status == 'On Hold' %}selected{% endif %}>Приостановлено</option>
+                                </select>
+                            </form>
+                        </td>
 
-        <td class="pe-4 text-end">
-    <form action="/tasks/delete/{{ task.id }}" method="post" style="display: inline;" onsubmit="return confirm('Удалить эту задачу?')">
-        <button type="submit" class="btn btn-sm text-danger shadow-none" title="Удалить">
-            <i class="fas fa-trash-alt"></i>
-        </button>
-    </form>
-</td>
-    </tr>
-    {% else %}
-    <tr>
-        <td colspan="6" class="text-center py-5 text-muted">Задач пока нет. Создайте первую!</td>
-    </tr>
-    {% endfor %}
-</tbody>
+                        <td class="pe-4 text-end">
+                            <form action="/tasks/delete/{{ task.id }}" method="post" style="display: inline;" onsubmit="return confirm('Удалить эту задачу?')">
+                                <button type="submit" class="btn btn-sm text-danger shadow-none p-2" title="Удалить" style="border-radius: 6px; transition: background-color 0.2s;">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted small">
+                            <div class="mb-2"><i class="fas fa-tasks fa-2x opacity-50"></i></div>
+                            Задач пока нет. Создайте первую!
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="createTaskModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">Новая задача</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">Новая задача</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="/tasks/create" method="post">
-                <div class="modal-body">
-    <div class="mb-3">
-        <label class="form-label small fw-bold text-muted text-uppercase">Название задачи</label>
-        <input type="text" name="title" class="form-control bg-light border-0" placeholder="Что нужно сделать?" required>
-    </div>
+                <div class="modal-body px-4 pt-3">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Название задачи</label>
+                        <input type="text" name="title" class="form-control modal-input-field shadow-none" placeholder="Что нужно сделать?" required>
+                    </div>
 
-    <div class="mb-3">
-        <label class="form-label small fw-bold text-muted text-uppercase">Исполнитель</label>
-        <select name="owner_id" class="form-select bg-light border-0" style="border-radius: 8px;">
-            <option value="">Не назначен</option>
-            {% for user in users %}
-                <option value="{{ user.id }}">{{ user.username }}</option>
-            {% endfor %}
-        </select>
-    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Иполнитель</label>
+                        <select name="owner_id" class="form-select modal-input-field shadow-none">
+                            <option value="">Не назначен</option>
+                            {% for user in users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-    <div class="mb-3">
-        <label class="form-label small fw-bold text-muted text-uppercase">Проект</label>
-        <select name="project_id" class="form-select bg-light border-0">
-            <option value="">Без проекта</option>
-            {% for project in projects %}
-                <option value="{{ project.id }}">{{ project.title }}</option>
-            {% endfor %}
-        </select>
-    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Проект</label>
+                        <select name="project_id" class="form-select modal-input-field shadow-none">
+                            <option value="">Без проекта</option>
+                            {% for project in projects %}
+                                <option value="{{ project.id }}">{{ project.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-    <div class="mb-3">
-        <label class="form-label small fw-bold text-muted text-uppercase">Дедлайн</label>
-        <input type="date" name="deadline" class="form-control bg-light border-0">
-    </div>
-</div>
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn text-muted fw-bold" data-bs-dismiss="modal">Отмена</button>
-                    <button type="submit" class="btn px-4" style="background: var(--neutral-dark); color: white; border-radius: 8px;">Создать</button>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Дедлайн</label>
+                        <input type="date" name="deadline" class="form-control modal-input-field shadow-none">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2">
+                    <button type="button" class="btn text-muted fw-bold shadow-none" style="font-size: 0.9rem;" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-save-task shadow-none">Создать</button>
                 </div>
             </form>
         </div>

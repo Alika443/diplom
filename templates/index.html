@@ -1,237 +1,162 @@
 {% extends "base.html" %}
 
-{% block title %}Главная - PMS{% endblock %}
+{% block title %}Главная - ProjectHub{% endblock %}
 
 {% block content %}
 <style>
     /* Стиль карточки статистики */
     .stat-card {
         background-color: #ffffff;
-        border: 1px solid #151516; /* Твоя фирменная обводка */
-        border-radius: 8px;
+        border: 1px solid #e3e6f0;
+        border-radius: 12px;
         padding: 24px;
         transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05);
     }
 
     .stat-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transform: translateY(-3px);
+        box-shadow: 0 0.3rem 2rem 0 rgba(58, 59, 69, 0.1);
     }
 
     .stat-label {
-        font-size: 0.85rem;
-        text-uppercase: uppercase;
+        font-size: 0.75rem;
+        text-transform: uppercase;
         letter-spacing: 1px;
-        color: #6c757d;
-        font-weight: 600;
+        color: var(--neutral-gray);
+        font-weight: 700;
         margin-bottom: 8px;
         display: block;
     }
 
     .stat-value {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #151516;
+        color: var(--neutral-dark);
         display: block;
+        line-height: 1;
     }
 
+    /* Выделение для срочных задач */
+    .stat-card-urgent {
+        background-color: #fdf2f2;
+        border-color: #fbd5d5;
+    }
+    .stat-card-urgent .stat-label {
+        color: #f87171;
+    }
+    .stat-card-urgent .stat-value {
+        color: #dc3545;
+    }
 
+    /* Секции контента */
     .recent-section {
         background-color: #ffffff;
-        border: 1px solid #151516;
-        border-radius: 8px;
+        border: 1px solid #e3e6f0;
+        border-radius: 12px;
         margin-top: 30px;
-        padding: 0; /* Чтобы таблица примыкала к краям */
+        padding: 0;
         overflow: hidden;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05);
     }
 
     .section-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #dee2e6;
+        border-bottom: 1px solid #e3e6f0;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
     .table thead th {
-        background-color: #f8f9fa;
-        text-uppercase: uppercase;
+        background-color: #f8fafc;
+        text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.5px;
-        color: #6c757d;
+        color: var(--neutral-gray);
         border-top: none;
-        padding: 12px 24px;
+        border-bottom: 1px solid #e3e6f0;
+        padding: 14px 24px;
     }
 
     .table tbody td {
         padding: 16px 24px;
         vertical-align: middle;
-        color: #151516;
-        border-bottom: 1px solid #f1f3f4;
+        color: var(--neutral-dark);
+        border-bottom: 1px solid #f1f5f9;
     }
 
     .status-pill {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
     
-    /* Цвета для статусов (можно настроить под свои) */
-    .status-active { background-color: #e3f2fd; color: #0d47a1; }
-    .status-new { background-color: #e8f5e9; color: #1b5e20; }
+    .status-active { background-color: var(--light-blue); color: var(--primary-blue); }
+    .status-new { background-color: #def7ec; color: #03543f; }
 
-    /* Стиль для текста выполненной задачи */
-    .task-done-text {
-        text-decoration: line-through; /* Зачеркивание */
-        opacity: 0.5;                /* Тусклость */
-        transition: all 0.3s ease;   /* Плавный переход */
-    }
-
-    /* Стиль для самого квадратика (чекбокса) */
-    .task-checkbox {
-        width: 18px;
-        height: 18px;
-        cursor: pointer;
-        accent-color: #000000; /* Цвет закрашивания */
-    }
-</style>
-
-<div class="container-fluid py-4">
-    <div class="mb-4">
-        <h2 class="h4 fw-bold">Обзор системы</h2>
-    </div>
-
-    <div class="row g-4">
-        <div class="col-md-3">
-            <div class="stat-card">
-                <span class="stat-label text-uppercase">Проекты</span>
-                <span class="stat-value">{{ stats.projects }}</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stat-card">
-                <span class="stat-label text-uppercase">Задачи в работе</span>
-                <span class="stat-value">{{ stats.tasks }}</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stat-card">
-                <span class="stat-label text-uppercase">Команда</span>
-                <span class="stat-value">{{ stats.users }}</span>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="stat-card">
-                <span class="stat-label text-uppercase">Срочные</span>
-                <span class="stat-value text-danger">{{ stats.urgent }}</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<div class="recent-section">
-    <div class="section-header">
-        <h3 class="h5 mb-0 fw-bold">Последние проекты</h3>
-        <a href="/projects" class="btn btn-sm btn-outline-dark">Все проекты</a>
-    </div>
-
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Название</th>
-                    <th>Статус</th>
-                    <th>Дедлайн</th>
-                    <th class="text-end">Действие</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for project in recent_projects %}
-                <tr>
-                    <td class="fw-bold">{{ project.title }}</td>
-                    <td>
-                        <span class="status-pill {% if project.status == 'Active' %}status-active{% else %}status-new{% endif %}">
-                            {{ project.status or 'Новый' }}
-                        </span>
-                    </td>
-                    <td class="text-muted">
-                        {{ project.deadline.strftime('%d.%m.%Y') if project.deadline else 'Не установлен' }}
-                    </td>
-                    <td class="text-end">
-                        <a href="/projects" class="text-decoration-none text-dark">→</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center py-5 text-muted">
-                        У вас пока нет созданных проектов.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-<style>
+    /* Чекбоксы и списки задач */
     .dashboard-lower-grid {
         margin-top: 30px;
     }
 
     .info-block {
         background-color: #ffffff;
-        border: 1px solid #151516;
-        border-radius: 8px;
+        border: 1px solid #e3e6f0;
+        border-radius: 12px;
         height: 100%;
         display: flex;
         flex-direction: column;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05);
+        overflow: hidden;
     }
 
     .info-header {
-        padding: 16px 20px;
-        border-bottom: 1px solid #f1f3f4;
+        padding: 20px 24px;
+        border-bottom: 1px solid #e3e6f0;
     }
 
     .info-body {
-        padding: 0;
+        padding: 15px 24px;
     }
 
-    /* Стиль для списка задач */
-    .task-item {
+    .task-item-box {
         display: flex;
-        align-items: center;
-        padding: 12px 20px;
-        border-bottom: 1px solid #f8f9fa;
-        transition: background 0.2s;
+        align-items: start;
+        margin-bottom: 12px;
+        padding: 14px 16px;
+        background-color: #f8fafc;
+        border-radius: 10px;
+        transition: background-color 0.2s;
     }
 
-    .task-item:hover {
-        background-color: #fcfcfc;
+    .task-item-box:hover {
+        background-color: #f1f5f9;
     }
 
     .task-checkbox {
-        width: 18px;
-        height: 18px;
-        border: 1px solid #151516;
-        border-radius: 4px;
-        margin-right: 15px;
+        width: 19px;
+        height: 19px;
         cursor: pointer;
+        accent-color: var(--primary-blue);
+        border-radius: 4px;
     }
 
-    /* Стиль для дедлайнов */
+    .task-done-text {
+        text-decoration: line-through;
+        opacity: 0.45;
+        transition: all 0.3s ease;
+    }
+
+    /* Дедлайны */
     .deadline-item {
-        padding: 12px 20px;
-        border-left: 4px solid #151516;
-        margin: 12px 20px;
-        background-color: #f8f9fa;
-        border-radius: 4px;
+        padding: 14px 16px;
+        border-left: 4px solid var(--primary-blue);
+        margin-bottom: 12px;
+        background-color: #f8fafc;
+        border-radius: 4px 10px 10px 4px;
     }
 
     .deadline-urgent {
@@ -240,53 +165,132 @@
     }
 </style>
 
-<div class="row dashboard-lower-grid g-4">
-    <div class="col-lg-8">
-        <div class="info-block">
-            <div class="info-header d-flex justify-content-between align-items-center">
-                <h3 class="h6 mb-0 fw-bold">Задачи на сегодня</h3>
-                <span class="badge rounded-pill bg-dark">{{ tasks_today|length }}</span>
+<div class="container-fluid py-2">
+    <div class="mb-4">
+        <h2 class="h4 fw-bold text-dark" style="letter-spacing: -0.5px;">Обзор системы</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label">Проекты</span>
+                <span class="stat-value">{{ stats.total_projects if stats.total_projects is defined else stats.projects }}</span>
             </div>
-            <div class="info-body">
-                {% for task in tasks_today %}
-                <div class="d-flex align-items-start mb-3 bg-white p-2" style="border-radius: 8px;">
-    <div class="me-3 pt-1"> 
-        <input type="checkbox" class="task-checkbox" 
-               onclick="toggleTask(this, 'task-text-{{ task.id }}')">
-    </div>
-    
-    <div id="task-text-{{ task.id }}" class="flex-grow-1">
-        <div class="fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.2;">
-            {{ task.title }}
         </div>
-        <div class="text-muted" style="font-size: 0.8rem;">
-            Проект: {{ task.project_id if task.project_id else 'None' }}
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label">Задачи в работе</span>
+                <span class="stat-value">{{ stats.total_tasks if stats.total_tasks is defined else stats.tasks }}</span>
+            </div>
         </div>
-    </div>
-</div>
-                {% else %}
-                <div class="p-4 text-center text-muted">На сегодня задач нет. Отдохните!</div>
-                {% endfor %}
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <span class="stat-label">Команда</span>
+                <span class="stat-value">{{ stats.users if stats.users is defined else '1' }}</span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card stat-card-urgent">
+                <span class="stat-label">Срочные</span>
+                <span class="stat-value">{{ stats.urgent if stats.urgent is defined else '0' }}</span>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        <div class="info-block">
-            <div class="info-header">
-                <h3 class="h6 mb-0 fw-bold">Ближайшие дедлайны</h3>
-            </div>
-            <div class="info-body">
-                {% for proj in upcoming_deadlines %}
-                <div class="deadline-item {% if loop.first %}deadline-urgent{% endif %}">
-                    <div class="fw-bold d-block">{{ proj.title }}</div>
-                    <small class="text-danger fw-bold">
-                        {{ proj.deadline.strftime('%d %b') if proj.deadline else '—' }}
-                    </small>
+    <div class="recent-section">
+        <div class="section-header">
+            <h3 class="h5 mb-0 fw-bold text-dark">Последние проекты</h3>
+            <a href="/projects" class="btn btn-sm btn-outline-primary px-3" style="border-radius: 8px; font-weight: 500;">Все проекты</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Статус</th>
+                        <th>Дедлайн</th>
+                        <th class="text-end">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for project in recent_projects %}
+                    <tr>
+                        <td class="fw-bold text-dark">{{ project.title }}</td>
+                        <td>
+                            <span class="status-pill {% if project.status == 'Active' or project.status == 'В работе' %}status-active{% else %}status-new{% endif %}">
+                                {{ project.status or 'Новый' }}
+                            </span>
+                        </td>
+                        <td class="text-muted">
+                            {{ project.deadline.strftime('%d.%m.%Y') if project.deadline else 'Не установлен' }}
+                        </td>
+                        <td class="text-end">
+                            <a href="/projects" class="text-decoration-none fw-bold" style="color: var(--primary-blue);">→</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted small">
+                            У вас пока нет созданных проектов.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row dashboard-lower-grid g-4">
+        <div class="col-lg-8">
+            <div class="info-block">
+                <div class="info-header d-flex justify-content-between align-items-center">
+                    <h3 class="h6 mb-0 fw-bold text-dark">Задачи на сегодня</h3>
+                    <span class="badge rounded-pill px-2.5 py-1" style="background-color: var(--primary-blue); font-size: 0.75rem;">{{ tasks_today|length if tasks_today else 0 }}</span>
                 </div>
-                {% else %}
-                <div class="p-4 text-center text-muted">Срочных дедлайнов нет.</div>
-                {% endfor %}
+                <div class="info-body">
+                    {% for task in tasks_today %}
+                    <div class="task-item-box">
+                        <div class="me-3 pt-0.5"> 
+                            <input type="checkbox" class="task-checkbox" 
+                                   onclick="toggleTask(this, 'task-text-{{ task.id }}')">
+                        </div>
+                        <div id="task-text-{{ task.id }}" class="flex-grow-1">
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem; line-height: 1.3;">
+                                {{ task.title }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.8rem; margin-top: 2px;">
+                                Проект: {{ task.project_id if task.project_id else 'Общие задачи' }}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="py-5 text-center text-muted small">На сегодня задач нет. Отдохните!</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="info-block">
+                <div class="info-header">
+                    <h3 class="h6 mb-0 fw-bold text-dark">Ближайшие дедлайны</h3>
+                </div>
+                <div class="info-body">
+                    {% for proj in upcoming_deadlines %}
+                    <div class="deadline-item {% if loop.first %}deadline-urgent{% endif %}">
+                        <span class="fw-bold text-dark d-block" style="font-size: 0.9rem;">{{ proj.title }}</span>
+                        <small class="fw-bold mt-1 d-inline-block {% if loop.first %}text-danger{% else %}text-muted{% endif %}" style="font-size: 0.8rem;">
+                            <i class="far fa-calendar-alt me-1"></i> {{ proj.deadline.strftime('%d %b %Y') if proj.deadline else '—' }}
+                        </small>
+                    </div>
+                    {% else %}
+                    <div class="py-5 text-center text-muted small">Срочных дедлайнов нет.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -295,12 +299,9 @@
 <script>
 function toggleTask(checkbox, textId) {
     const taskText = document.getElementById(textId);
-    
     if (checkbox.checked) {
-        // Если галочка стоит — делаем тусклым и зачеркиваем
         taskText.classList.add('task-done-text');
     } else {
-        // Если сняли — возвращаем как было
         taskText.classList.remove('task-done-text');
     }
 }

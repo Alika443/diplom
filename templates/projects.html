@@ -2,219 +2,257 @@
 
 {% block content %}
 <style>
-    /* Кнопка "Создать" / "Сохранить" (Светло-серая с темной обводкой) */
-    .btn-save {
-        background-color: #b7b9bc !important;
-        border: 1px solid #151516 !important; /* Добавлена темная обводка */
-        color: #151516 !important;
+    /* Кнопки действий */
+    .btn-create-project {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
         transition: background-color 0.2s !important;
+        box-shadow: 0 4px 6px rgba(78, 115, 223, 0.15);
     }
 
-    .btn-save:hover {
-        background-color: #a1a3a5 !important;
-        border-color: #000 !important;
-        color: #000 !important;
+    .btn-create-project:hover {
+        background-color: #375add !important;
     }
 
-    /* Кнопка "Отмена" / "Закрыть" (Белая с темной обводкой) */
-    .btn-cancel {
-        background-color: #ffffff !important;
-        border: 1px solid #151516 !important;
-        color: #151516 !important;
-        transition: all 0.2s !important;
+    .btn-save-modal {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
     }
 
-    .btn-cancel:hover {
-        background-color: #f8f9fa !important;
-        border-color: #000 !important;
-        color: #000 !important;
+    .btn-save-modal:hover {
+        background-color: #375add !important;
     }
 
-    /* Остальные стили без изменений */
+    .btn-cancel-modal {
+        background-color: #f1f5f9 !important;
+        border: none !important;
+        color: var(--neutral-dark) !important;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .btn-cancel-modal:hover {
+        background-color: #e2e8f0 !important;
+    }
+
+    /* Стили таблицы и выпадающих меню */
     .dropdown-toggle::after {
         display: none !important;
     }
 
-    .status-link {
-        background: none !important;
-        border: none !important;
-        padding: 5px 10px !important;
-        color: #151516 !important;
-        cursor: pointer !important;
-        transition: background-color 0.2s ease !important;
-        display: inline-block !important;
-        text-decoration: none !important;
+    .status-pill-btn {
+        background: none;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
     }
 
-    .status-link:hover {
-        background-color: #e9ecef !important;
-        border-radius: 4px !important;
+    .status-pill-btn:hover {
+        opacity: 0.85;
     }
+
+    .status-in-progress { background-color: var(--light-blue); color: var(--primary-blue); }
+    .status-done { background-color: #def7ec; color: #03543f; }
+    .status-unknown { background-color: #f1f5f9; color: var(--neutral-gray); }
 
     .action-btn {
         background: none;
         border: none;
-        color: #6c757d;
-        padding: 5px 10px;
-        font-size: 20px;
+        color: var(--neutral-gray);
+        padding: 4px 10px;
+        font-size: 1.2rem;
         line-height: 1;
-        border-radius: 4px;
-        transition: background-color 0.2s;
+        border-radius: 6px;
+        transition: all 0.2s;
     }
 
     .action-btn:hover {
-        background-color: #e9ecef;
-        color: #000;
+        background-color: #f1f5f9;
+        color: var(--neutral-dark);
     }
 
-    .dropdown-menu-end {
-        right: 0;
-        left: auto;
+    /* Модальные окна */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .modal-input:focus {
+        border-color: #bac8f3;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
     }
 </style>
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3">Управление проектами</h1>
-        <button type="button" class="btn btn-cancel" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-            Создать проект
+        <h1 class="h4 fw-bold text-dark mb-0" style="letter-spacing: -0.5px;">Управление проектами</h1>
+        <button type="button" class="btn btn-create-project" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+            <i class="fas fa-plus me-2"></i>Создать проект
         </button>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05) !important;">
         <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">ID</th>
-                        <th>Название проекта</th>
-                        <th>Статус</th>
-                        <th>Срок</th>
-                        <th class="text-end pe-4">Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for project in projects %}
-                    <tr>
-                        <td class="ps-4 text-muted">{{ project.id }}</td>
-                        <td>
-                            <div class="fw-bold">{{ project.title }}</div>
-                            <small class="text-muted">{{ project.description or '' }}</small>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="status-link dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    {% if project.status == 'In Progress' %}В процессе{% elif project.status == 'Done' %}Завершено{% else %}{{ project.status }}{% endif %}
-                                </button>
-                                <ul class="dropdown-menu shadow-sm">
-                                    <li>
-                                        <form action="/projects/update-status/{{ project.id }}" method="post">
-                                            <input type="hidden" name="status" value="In Progress">
-                                            <button type="submit" class="dropdown-item">В процессе</button>
-                                        </form>
-                                    </li>
-                                    <li>
-                                        <form action="/projects/update-status/{{ project.id }}" method="post">
-                                            <input type="hidden" name="status" value="Done">
-                                            <button type="submit" class="dropdown-item">Завершено</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                        <td>
-                            {% if project.deadline %}
-                                {{ project.deadline.strftime('%d.%m.%Y') if project.deadline.strftime else project.deadline }}
-                            {% else %}
-                                Не указан
-                            {% endif %}
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="dropdown">
-                                <button class="action-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    ⋮
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                    <li>
-                                        <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editModal{{ project.id }}">
-                                            Редактировать
-                                        </button>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form action="/projects/delete/{{ project.id }}" method="post" onsubmit="return confirm('Удалить проект?')">
-                                            <button type="submit" class="dropdown-item text-danger">Удалить</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background-color: #f8fafc;">
+                        <tr>
+                            <th class="ps-4 text-uppercase style-th" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px; padding: 14px 24px;">ID</th>
+                            <th class="text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px; padding: 14px 24px;">Название проекта</th>
+                            <th class="text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px; padding: 14px 24px;">Статус</th>
+                            <th class="text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px; padding: 14px 24px;">Срок</th>
+                            <th class="text-end pe-4 text-uppercase" style="font-size: 0.75rem; color: var(--neutral-gray); letter-spacing: 0.5px; padding: 14px 24px;">Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for project in projects %}
+                        <tr>
+                            <td class="ps-4 text-muted small" style="padding: 16px 24px;">#{{ project.id }}</td>
+                            <td style="padding: 16px 24px;">
+                                <div class="fw-bold text-dark">{{ project.title }}</div>
+                                {% if project.description %}
+                                <small class="text-muted d-block text-truncate" style="max-width: 300px;">{{ project.description }}</small>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 16px 24px;">
+                                <div class="dropdown">
+                                    <button class="status-pill-btn dropdown-toggle {% if project.status == 'In Progress' or project.status == 'В процессе' %}status-in-progress{% elif project.status == 'Done' or project.status == 'Завершено' %}status-done{% else %}status-unknown{% endif %}" type="button" data-bs-toggle="dropdown">
+                                        {% if project.status == 'In Progress' %}В процессе{% elif project.status == 'Done' %}Завершено{% else %}{{ project.status or 'Новый' }}{% endif %} <i class="fas fa-chevron-down ms-1" style="font-size: 0.65rem;"></i>
+                                    </button>
+                                    <ul class="dropdown-menu shadow-sm border-0 p-1 mt-1" style="border-radius: 8px;">
+                                        <li>
+                                            <form action="/projects/update-status/{{ project.id }}" method="post">
+                                                <input type="hidden" name="status" value="In Progress">
+                                                <button type="submit" class="dropdown-item py-2 rounded-2" style="font-size: 0.85rem;"><span class="badge rounded-circle p-1 bg-primary me-2"> </span>В процессе</button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form action="/projects/update-status/{{ project.id }}" method="post">
+                                                <input type="hidden" name="status" value="Done">
+                                                <button type="submit" class="dropdown-item py-2 rounded-2" style="font-size: 0.85rem;"><span class="badge rounded-circle p-1 bg-success me-2"> </span>Завершено</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                            <td class="text-muted" style="padding: 16px 24px; font-size: 0.9rem;">
+                                <i class="far fa-calendar-alt me-1 text-muted" style="font-size: 0.85rem;"></i>
+                                {% if project.deadline %}
+                                    {{ project.deadline.strftime('%d.%m.%Y') if project.deadline.strftime else project.deadline }}
+                                {% else %}
+                                    Не указан
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4" style="padding: 16px 24px;">
+                                <div class="dropdown">
+                                    <button class="action-btn dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 p-2 mt-1" style="border-radius: 8px;">
+                                        <li>
+                                            <button class="dropdown-item py-2 rounded-2" data-bs-toggle="modal" data-bs-target="#editModal{{ project.id }}">
+                                                <i class="fas fa-edit me-2 text-muted" style="font-size: 0.85rem;"></i> Редактировать
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider" style="color: #e3e6f0;"></li>
+                                        <li>
+                                            <form action="/projects/delete/{{ project.id }}" method="post" onsubmit="return confirm('Удалить проект?')">
+                                                <button type="submit" class="dropdown-item py-2 rounded-2 text-danger">
+                                                    <i class="fas fa-trash-alt me-2"></i> Удалить
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
 
-                    <div class="modal fade" id="editModal{{ project.id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <form action="/projects/update/{{ project.id }}" method="post">
-                                    <div class="modal-header border-0">
-                                        <h5 class="modal-title">Редактирование проекта</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="mb-3">
-                                            <label class="form-label">Название</label>
-                                            <input type="text" name="title" class="form-control" value="{{ project.title }}" required>
+                        <div class="modal fade" id="editModal{{ project.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form action="/projects/update/{{ project.id }}" method="post">
+                                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                                            <h5 class="modal-title fw-bold text-dark">Редактирование проекта</h5>
+                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Описание</label>
-                                            <textarea name="description" class="form-control" rows="3">{{ project.description or '' }}</textarea>
+                                        <div class="modal-body px-4 pt-3">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-muted">Название</label>
+                                                <input type="text" name="title" class="form-control modal-input shadow-none" value="{{ project.title }}" style="border-radius: 8px;" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-muted">Описание</label>
+                                                <textarea name="description" class="form-control modal-input shadow-none" rows="3" style="border-radius: 8px;">{{ project.description or '' }}</textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold text-muted">Срок</label>
+                                                <input type="date" name="deadline" class="form-control modal-input shadow-none" style="border-radius: 8px;" value="{{ project.deadline.strftime('%Y-%m-%d') if project.deadline.strftime else project.deadline }}">
+                                            </div>
+                                            <input type="hidden" name="status" value="{{ project.status }}">
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Срок</label>
-                                            <input type="date" name="deadline" class="form-control" value="{{ project.deadline.strftime('%Y-%m-%d') if project.deadline.strftime else project.deadline }}">
+                                        <div class="modal-footer border-0 px-4 pb-4 pt-2">
+                                            <button type="button" class="btn btn-cancel-modal shadow-none" data-bs-dismiss="modal">Отмена</button>
+                                            <button type="submit" class="btn btn-save-modal shadow-none">Сохранить</button>
                                         </div>
-                                        <input type="hidden" name="status" value="{{ project.status }}">
-                                    </div>
-                                    <div class="modal-footer border-0">
-                                        <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Отмена</button>
-                                        <button type="submit" class="btn btn-save">Сохранить</button>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted small">
+                                <div class="mb-2"><i class="fas fa-folder-open fa-2x opacity-50"></i></div>
+                                У вас пока нет созданных проектов.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <div class="modal fade" id="addProjectModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content text-start">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
             <form action="/projects/create" method="post">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title">Новый проект</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-dark">Новый проект</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body px-4 pt-3">
                     <div class="mb-3">
-                        <label class="form-label">Название проекта</label>
-                        <input type="text" name="title" class="form-control" required>
+                        <label class="form-label small fw-bold text-muted">Название проекта</label>
+                        <input type="text" name="title" class="form-control modal-input shadow-none" style="border-radius: 8px;" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Описание</label>
-                        <textarea name="description" class="form-control" rows="3"></textarea>
+                        <label class="form-label small fw-bold text-muted">Описание</label>
+                        <textarea name="description" class="form-control modal-input shadow-none" rows="3" style="border-radius: 8px;"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Срок выполнения</label>
-                        <input type="date" name="deadline" class="form-control">
+                        <label class="form-label small fw-bold text-muted">Срок выполнения</label>
+                        <input type="date" name="deadline" class="form-control modal-input shadow-none" style="border-radius: 8px;">
                     </div>
                     <input type="hidden" name="status" value="In Progress">
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">Закрыть</button>
-                    <button type="submit" class="btn btn-save">Создать</button>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-cancel-modal shadow-none" data-bs-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-save-modal shadow-none">Создать</button>
                 </div>
             </form>
         </div>
