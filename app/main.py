@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, date
-from fastapi import FastAPI, Request, Depends, Form, responses, Query
+from fastapi import FastAPI, Request, Depends, Form, responses, Query, status
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -51,6 +51,11 @@ async def handle_register(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+
+# ДОБАВЬ ЭТИ ТРИ СТРОЧКИ ДЛЯ ПРОВЕРКИ В КОНСОЛИ:
+    print(f"--- ДАННЫЕ ИЗ ФОРМЫ РЕГИСТРАЦИИ ---")
+    print(f"Username: {username}, Email: {email}")
+    print(f"Password: {password} (Тип: {type(password)}, Длина: {len(str(password))})")
     # Проверяем, нет ли уже пользователя с таким email
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
@@ -61,7 +66,8 @@ async def handle_register(
         })
     
     # Хэшируем пароль перед записью в базу!
-    hashed_pwd = get_password_hash(password)
+    clean_password = str(password).strip()
+    hashed_pwd = get_password_hash(clean_password)
     
     # Создаем нового пользователя
     new_user = User(username=username, email=email, hashed_password=hashed_pwd)
@@ -117,20 +123,34 @@ async def handle_logout():
 async def index_page(
     request: Request, 
     db: Session = Depends(get_db), 
-    current_user: User = Depends(get_current_user) # Перехватываем пользователя
+    current_user: User = Depends(get_current_user)
 ):
-    # Если пользователь не залогинен, принудительно отправляем его на форму входа
+    # 1. Если пользователь не залогинен — отправляем на вход
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
         
-    # Твой существующий код сбора статистики для главной страницы...
-    # (проекты, задачи, команда и т.д.)
-    
-    # В словарь для шаблона обязательно передаем current_user, чтобы в шапке отображалось имя!
+    # 2. Извлекаем данные из базы для текущего пользователя
+    # Импортируй свои модели Task и Project вверху файла, если их там нет
+    from app.models.task import Task
+    from app.models.project import Project
+
+    user_tasks = db.query(Task).filter(Task.owner_id == current_user.id).all()
+    user_projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
+
+    # 3. Собираем тот самый словарь stats, который требует Jinja2
+    stats = {
+        "total_tasks": len(user_tasks),
+        "total_projects": len(user_projects),
+        "completed_tasks": len([t for t in user_tasks if t.is_completed]), # или твой флаг статуса
+    }
+
+    # 4. Отдаем всё в шаблон index.html
     return templates.TemplateResponse("index.html", {
         "request": request,
         "user": current_user,
-        # ... твои остальные переменные (tasks, projects) ...
+        "stats": stats,
+        "tasks": user_tasks,
+        "projects": user_projects
     })
 
 @app.get("/projects", response_class=HTMLResponse)
