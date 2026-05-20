@@ -3,13 +3,94 @@
 {% block title %}Команда - ProjectHub{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<style>
+    /* Кнопки */
+    .btn-invite-user {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: 500;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: background-color 0.2s !important;
+        box-shadow: 0 4px 6px rgba(78, 115, 223, 0.15);
+    }
+
+    .btn-invite-user:hover {
+        background-color: #375add !important;
+    }
+
+    .btn-save-user {
+        background-color: var(--primary-blue) !important;
+        border: none !important;
+        color: #ffffff !important;
+        padding: 8px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+
+    .btn-save-user:hover {
+        background-color: #375add !important;
+    }
+
+    /* Карточки участников */
+    .team-card {
+        border-radius: 16px; 
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none !important;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.05) !important;
+    }
+
+    .team-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+    }
+
+    /* Кастомный селект роли */
+    .role-select {
+        width: 150px; 
+        font-size: 0.8rem; 
+        border-radius: 20px !important; 
+        text-align: center; 
+        cursor: pointer; 
+        font-weight: 600;
+        border: 1px solid #e3e6f0 !important;
+        background-position: right 12px center;
+    }
+
+    .role-admin { background-color: #fde8e8; color: #9b1c1c; }
+    .role-manager { background-color: var(--light-blue); color: var(--primary-blue); }
+    .role-developer { background-color: #def7ec; color: #03543f; }
+    .role-viewer { background-color: #f1f5f9; color: #475569; }
+
+    /* Поля ввода в модальном окне */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    .modal-input-field {
+        border: 1px solid #e3e6f0 !important;
+        background-color: #f8fafc !important;
+        border-radius: 8px !important;
+        padding: 10px 14px;
+    }
+
+    .modal-input-field:focus {
+        border-color: #bac8f3 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15) !important;
+    }
+</style>
+
+<div class="container-fluid py-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-0" style="color: var(--neutral-dark);">Команда</h2>
-            <p class="text-muted small">Всего участников: {{ users|length }}</p>
+            <h2 class="h4 fw-bold text-dark mb-0" style="letter-spacing: -0.5px;">Команда</h2>
+            <p class="text-muted small mb-0">Всего участников: {{ users|length }}</p>
         </div>
-        <button class="btn border shadow-sm px-4" style="background: #ffffff; color: var(--neutral-dark); border-radius: 8px;">
+        <button class="btn btn-invite-user" data-bs-toggle="modal" data-bs-target="#addUserModal">
             <i class="fas fa-user-plus me-2"></i> Пригласить
         </button>
     </div>
@@ -17,100 +98,87 @@
     <div class="row g-4">
         {% for user in users %}
         <div class="col-12 col-md-6 col-lg-4 col-xl-3">
-            <div class="card border-0 shadow-sm h-100" style="border-radius: 16px; transition: transform 0.2s;">
+            <div class="card team-card h-100">
                 <div class="card-body text-center p-4">
-                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm" 
-                         style="width: 70px; height: 70px; background: #5145cd; color: white; border-radius: 50%; font-size: 1.8rem; font-weight: 600;">
+                    <div class="mx-auto mb-3 d-flex align-items-center justify-content-center shadow-sm fw-bold" 
+                         style="width: 70px; height: 70px; background: #bac8f3; color: var(--primary-blue); border-radius: 50%; font-size: 1.8rem;">
                         {{ user.username[0] | upper }}
                     </div>
                     
-                    <h5 class="fw-bold mb-1" style="color: var(--neutral-dark);">{{ user.username }}</h5>
-                    <p class="text-muted small mb-3">{{ user.email }}</p>
+                    <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.1rem;">{{ user.username }}</h5>
+                    <p class="text-muted small mb-3 text-truncate">{{ user.email }}</p>
                     
-                    <div class="mb-4">
-    <form action="/users/update-role/{{ user.id }}" method="post" style="margin: 0;">
-        <select name="role" onchange="this.form.submit()" class="form-select form-select-sm border-0 bg-light mx-auto shadow-none" 
-                style="width: 140px; font-size: 0.8rem; border-radius: 20px; text-align: center; cursor: pointer; font-weight: 600;">
-            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
-            <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Менеджер</option>
-            <option value="developer" {% if user.role == 'developer' %}selected{% endif %}>Разработчик</option>
-            <option value="viewer" {% if user.role == 'viewer' %}selected{% endif %}>Наблюдатель</option>
-        </select>
-    </form>
-</div>
+                    <div class="mb-4 d-flex justify-content-center">
+                        <form action="/users/update-role/{{ user.id }}" method="post" style="margin: 0;">
+                            <select name="role" onchange="this.form.submit()" class="form-select form-select-sm role-select shadow-none {% if user.role == 'admin' %}role-admin{% elif user.role == 'manager' %}role-manager{% elif user.role == 'developer' %}role-developer{% else %}role-viewer{% endif %}">
+                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+                                <option value="manager" {% if user.role == 'manager' %}selected{% endif %}>Менеджер</option>
+                                <option value="developer" {% if user.role == 'developer' %}selected{% endif %}>Разработчик</option>
+                                <option value="viewer" {% if user.role == 'viewer' %}selected{% endif %}>Наблюдатель</option>
+                            </select>
+                        </form>
+                    </div>
 
-                    <div class="d-flex justify-content-center gap-4 pt-3 border-top">
-    <div class="text-center">
-        <div class="fw-bold" style="font-size: 1rem;">{{ stats[user.id].tasks }}</div>
-        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Задач</div>
-    </div>
-    <div class="text-center border-start ps-4">
-        <div class="fw-bold" style="font-size: 1rem;">{{ stats[user.id].projects }}</div>
-        <div class="text-muted" style="font-size: 0.7rem; text-transform: uppercase;">Проектов</div>
-    </div>
-</div>
+                    <div class="d-flex justify-content-center gap-4 pt-3 border-top" style="border-color: #f1f5f9 !important;">
+                        <div class="text-center">
+                            <div class="fw-bold text-dark" style="font-size: 1rem;">
+                                {{ stats.get(user.id, {}).get('tasks', 0) if stats is mapping else 0 }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Задач</div>
+                        </div>
+                        <div class="text-center border-start ps-4" style="border-color: #f1f5f9 !important;">
+                            <div class="fw-bold text-dark" style="font-size: 1rem;">
+                                {{ stats.get(user.id, {}).get('projects', 0) if stats is mapping else 0 }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Проектов</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="card-footer bg-transparent border-0 pb-4 text-center">
-                    <a href="#" class="btn btn-sm px-3 border-0" style="color: var(--neutral-gray); font-weight: 600;">
+                    <a href="#" class="btn btn-sm px-3 border-0 shadow-none" style="color: var(--neutral-gray); font-weight: 600; font-size: 0.85rem;">
                         Профиль <i class="fas fa-chevron-right ms-1" style="font-size: 0.7rem;"></i>
                     </a>
                 </div>
             </div>
         </div>
         {% else %}
-        <div class="col-12 text-center py-5">
-            <i class="fas fa-users fa-3x text-light mb-3"></i>
-            <p class="text-muted">В вашей команде пока никого нет.</p>
+        <div class="col-12 text-center py-5 text-muted">
+            <div class="mb-2"><i class="fas fa-users fa-2x opacity-50"></i></div>
+            В вашей команде пока никого нет.
         </div>
         {% endfor %}
     </div>
 </div>
 
-<style>
-    /* Эффект при наведении на карточку */
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
-    }
-</style>
-
 <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">Добавить участника</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark">Добавить участника</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="/users/create" method="post">
-                <div class="modal-body">
+                <div class="modal-body px-4 pt-3">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Имя пользователя</label>
-                        <input type="text" name="username" class="form-control bg-light border-0" placeholder="Напр. Ivan_Ivanov" required>
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Имя пользователя</label>
+                        <input type="text" name="username" class="form-control modal-input-field shadow-none" placeholder="Напр. Ivan_Ivanov" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Email</label>
-                        <input type="email" name="email" class="form-control bg-light border-0" placeholder="ivan@example.com" required>
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Email</label>
+                        <input type="email" name="email" class="form-control modal-input-field shadow-none" placeholder="ivan@example.com" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Пароль (временный)</label>
-                        <input type="password" name="password" class="form-control bg-light border-0" required>
+                        <label class="form-label small fw-bold text-muted text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Пароль (временный)</label>
+                        <input type="password" name="password" class="form-control modal-input-field shadow-none" required>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn text-muted fw-bold" data-bs-dismiss="modal">Отмена</button>
-                    <button type="submit" class="btn px-4" style="background: var(--neutral-dark); color: white; border-radius: 8px;">Добавить</button>
+                <div class="modal-footer border-0 px-4 pb-4 pt-2">
+                    <button type="button" class="btn text-muted fw-bold shadow-none" style="font-size: 0.9rem;" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-save-user shadow-none">Добавить</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-    // Активируем модалку при клике на кнопку "Пригласить"
-    document.querySelector('button.btn.border.shadow-sm.px-4').onclick = function() {
-        var myModal = new bootstrap.Modal(document.getElementById('addUserModal'));
-        myModal.show();
-    };
-</script>
 {% endblock %}

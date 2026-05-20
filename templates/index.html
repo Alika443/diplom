@@ -186,11 +186,19 @@
         </div>
 
         <div class="col-md-3">
-            <div class="stat-card">
-                <span class="stat-label">Команда</span>
-                <span class="stat-value">{{ stats.users if stats.users is defined else '1' }}</span>
-            </div>
-        </div>
+    <div class="stat-card">
+        <span class="stat-label">Команда</span>
+        <span class="stat-value">
+            {% if stats is mapping and stats.users is defined %}
+                {{ stats.users }}
+            {% elif stats.users is defined %}
+                {{ stats.users }}
+            {% else %}
+                1
+            {% endif %}
+        </span>
+    </div>
+</div>
 
         <div class="col-md-3">
             <div class="stat-card stat-card-urgent">
