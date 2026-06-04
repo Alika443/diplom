@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import jwt
 from app.core.config import settings
 from app.database import get_db
-from app.models.user import User  # Убедись, что путь к твоей модели User верный
+from app.models.user import User  
 
 async def get_current_user(request: Request, db: Session = Depends(get_db)):
     """
@@ -18,7 +18,7 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
          return None
 
     try:
-        # 2. Декодируем токен с помощью нашего секретного ключа
+        # 2. Декодируем токен с помощью секретного ключа
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         user_id: int = payload.get("user_id")
         

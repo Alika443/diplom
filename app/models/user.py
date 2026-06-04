@@ -16,8 +16,6 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     role = Column(String, default=UserRole.DEVELOPER.value)
-    # Добавь эту строку обязательно!
     tasks = relationship("Task", back_populates="owner")
     
-    # Если есть файл project.py, добавь и это:
     projects = relationship("Project", back_populates="owner")

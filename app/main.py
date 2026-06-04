@@ -12,25 +12,25 @@ from app.models import Project, Task, User
 from fastapi import Response
 from fastapi.responses import RedirectResponse
 
-# Импортируем нашу логику безопасности
+# Импортируем логику безопасности
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.services.auth_services import get_current_user
-from app.models.user import User # Убедись, что путь к модели User точный
+from app.models.user import User 
 
 # Создаем таблицы в БД
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# --- НАСТРОЙКА ШАБЛОНОВ ---
+# НАСТРОЙКА ШАБЛОНОВ
 current_dir = os.path.dirname(os.path.abspath(__file__)) # папка app
 project_root = os.path.dirname(current_dir) # корень проекта
 templates_path = os.path.join(project_root, "templates")
 templates = Jinja2Templates(directory=templates_path)
 
-# --- МАРШРУТЫ (ROUTES) ---
+# МАРШРУТЫ (ROUTES)
 
-# --- СТРАНИЦЫ АВТОРИЗАЦИИ (ОТОБРАЖЕНИЕ ФОРМ) ---
+# СТРАНИЦЫ АВТОРИЗАЦИИ (ОТОБРАЖЕНИЕ ФОРМ)
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
@@ -41,7 +41,7 @@ async def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 
-# --- ОБРАБОТКА ДАННЫХ ИЗ ФОРМ (POST-ЗАПРОСЫ) ---
+# ОБРАБОТКА ДАННЫХ ИЗ ФОРМ (POST-ЗАПРОСЫ)
 
 @app.post("/register")
 async def handle_register(
@@ -52,20 +52,18 @@ async def handle_register(
     db: Session = Depends(get_db)
 ):
 
-# ДОБАВЬ ЭТИ ТРИ СТРОЧКИ ДЛЯ ПРОВЕРКИ В КОНСОЛИ:
     print(f"--- ДАННЫЕ ИЗ ФОРМЫ РЕГИСТРАЦИИ ---")
     print(f"Username: {username}, Email: {email}")
     print(f"Password: {password} (Тип: {type(password)}, Длина: {len(str(password))})")
     # Проверяем, нет ли уже пользователя с таким email
     existing_user = db.query(User).filter(User.email == email).first()
     if existing_user:
-        # Для диплома вернем простую ошибку, позже можно сделать красивее
         return templates.TemplateResponse("register.html", {
             "request": request, 
             "error": "Пользователь с таким email уже зарегистрирован"
         })
     
-    # Хэшируем пароль перед записью в базу!
+    # Хэшируем пароль перед записью в базу
     clean_password = str(password).strip()
     hashed_pwd = get_password_hash(clean_password)
     
@@ -119,6 +117,10 @@ async def handle_logout():
     redirect.delete_cookie(key="access_token")
     return redirect
 
+from datetime import date
+
+from datetime import date
+
 @app.get("/", response_class=HTMLResponse)
 async def index_page(
     request: Request, 
@@ -129,29 +131,52 @@ async def index_page(
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
         
-    # 2. Извлекаем данные из базы для текущего пользователя
-    # Импортируй свои модели Task и Project вверху файла, если их там нет
+    # 2. Извлекаем ВСЕ данные из базы (без фильтрации по owner_id)
     from app.models.task import Task
     from app.models.project import Project
+    from app.models.user import User
 
-    user_tasks = db.query(Task).filter(Task.owner_id == current_user.id).all()
-    user_projects = db.query(Project).filter(Project.owner_id == current_user.id).all()
+    user_tasks = db.query(Task).all()
+    user_projects = db.query(Project).all()
+    total_users_count = db.query(User).count()
 
-    # 3. Собираем тот самый словарь stats, который требует Jinja2
+    # Все возможные активные статусы, которые есть на твоих скринах
+    active_statuses = ["В работе", "In Progress", "Нужно сделать", "To Do", "Приостановлено"]
+
+    # 3. Собираем словарь stats (теперь используем список active_statuses)
     stats = {
-        "total_tasks": len(user_tasks),
+        "projects": len(user_projects),
         "total_projects": len(user_projects),
-        "completed_tasks": len([t for t in user_tasks if t.is_completed]), # или твой флаг статуса
+        "tasks": len([t for t in user_tasks if t.status in active_statuses]),
+        "total_tasks": len([t for t in user_tasks if t.status in active_statuses]),
+        "users": total_users_count,
+        "urgent": len([t for t in user_tasks if t.deadline and t.status not in ["Завершено", "Done"]])
     }
 
-    # 4. Отдаем всё в шаблон index.html
+    # 4. Вытаскиваем списки для таблиц дашборда (БЕЗ фильтрации по owner_id)
+    # Последние проекты
+    recent_projects = db.query(Project).order_by(Project.id.desc()).limit(5).all()
+    
+    # Чтобы блок "Задачи на сегодня" не пустовал, покажем просто последние невыполненные задачи
+    tasks_today = [t for t in user_tasks if t.status not in ["Завершено", "Done"]][:5]
+    
+    # Ближайшие дедлайны (все невыполненные задачи из базы, у которых заполнен дедлайн)
+    upcoming_deadlines = db.query(Task).filter(
+        Task.status.notin_(["Завершено", "Done"]),
+        Task.deadline != None
+    ).order_by(Task.deadline.asc()).limit(5).all()
+
+    
+    # 5. Отдаем всё в шаблон index.html
     return templates.TemplateResponse("index.html", {
         "request": request,
         "user": current_user,
         "stats": stats,
-        "tasks": user_tasks,
-        "projects": user_projects
+        "recent_projects": recent_projects,
+        "tasks_today": tasks_today,
+        "upcoming_deadlines": upcoming_deadlines
     })
+
 
 @app.get("/projects", response_class=HTMLResponse)
 async def projects_page(request: Request, db: Session = Depends(get_db)):
@@ -246,7 +271,7 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
 async def tasks_page(request: Request, status: str = None, db: Session = Depends(get_db)):
     users = db.query(User).all()
     tasks = db.query(Task).all()
-    users = db.query(User).all()  # <--- БЕЗ ЭТОЙ СТРОКИ СПИСОК БУДЕТ ПУСТЫМ
+    users = db.query(User).all() 
     projects = db.query(Project).all()
     try:
         query = db.query(Task)
@@ -362,7 +387,7 @@ async def users_page(request: Request, db: Session = Depends(get_db)):
     stats = {}
     
     for user in users:
-    # Считаем задачи (как сейчас)
+    # Считаем задачи
         t_count = db.query(Task).filter(Task.owner_id == user.id).count()
     
     # Считаем уникальные проекты, в которых у пользователя есть задачи
@@ -400,7 +425,7 @@ async def global_search(request: Request, q: str = Query(""), db: Session = Depe
     if search_query:
         print(f"\n--- ВЫПОЛНЯЕТСЯ ПОИСК: '{search_query}' ---")
         
-        # Ищем в моделях (убедись, что импорты моделей Task, Project, User верны)
+        # Ищем в моделях 
         results["projects"] = db.query(models.project.Project).filter(models.project.Project.title.ilike(f"%{search_query}%")).all()
         results["tasks"] = db.query(models.task.Task).filter(models.task.Task.title.ilike(f"%{search_query}%")).all()
         results["users"] = db.query(models.user.User).filter(models.user.User.username.ilike(f"%{search_query}%")).all()

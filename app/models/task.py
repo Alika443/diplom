@@ -9,7 +9,6 @@ class Task(Base):
     title = Column(String)
     status = Column(String, default="To Do")
     owner_id = Column(Integer, ForeignKey("users.id")) 
-    # Связь, чтобы алхимия понимала, кто владелец
     owner = relationship("User", back_populates="tasks")
     deadline = Column(Date, nullable=True)
     project_id = Column(Integer, ForeignKey("projects.id"))

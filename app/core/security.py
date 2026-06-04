@@ -7,7 +7,7 @@ def get_password_hash(password: str) -> str:
     """Хэширует чистый пароль для сохранения в базу данных"""
     # Переводим строку пароля в байты
     password_bytes = password.encode('utf-8')
-    # Генерируем соль и хэшируем
+    # хэшируем
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(password_bytes, salt)
     # Возвращаем обратно в виде строки для хранения в БД
