@@ -166,7 +166,7 @@ async def index_page(
         Task.deadline != None
     ).order_by(Task.deadline.asc()).limit(5).all()
 
-    
+
     # 5. Отдаем всё в шаблон index.html
     return templates.TemplateResponse("index.html", {
         "request": request,
@@ -177,7 +177,7 @@ async def index_page(
         "upcoming_deadlines": upcoming_deadlines
     })
 
-
+ 
 @app.get("/projects", response_class=HTMLResponse)
 async def projects_page(request: Request, db: Session = Depends(get_db)):
     try:
