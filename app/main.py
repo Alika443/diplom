@@ -179,12 +179,13 @@ async def index_page(
 
  
 @app.get("/projects", response_class=HTMLResponse)
-async def projects_page(request: Request, db: Session = Depends(get_db)):
+async def projects_page(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     try:
         projects = db.query(Project).all()
         return templates.TemplateResponse("projects.html", {
             "request": request, 
-            "projects": projects
+            "projects": projects,
+            "user": current_user
         })
     except Exception as e:
         return HTMLResponse(content=f"Ошибка в проектах: {e}", status_code=500)
@@ -268,7 +269,7 @@ async def search(request: Request, q: str = "", type: str = "all", db: Session =
 
 
 @app.get("/tasks", response_class=HTMLResponse)
-async def tasks_page(request: Request, status: str = None, db: Session = Depends(get_db)):
+async def tasks_page(request: Request, status: str = None, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     users = db.query(User).all()
     tasks = db.query(Task).all()
     users = db.query(User).all() 
@@ -288,7 +289,8 @@ async def tasks_page(request: Request, status: str = None, db: Session = Depends
             "tasks": tasks,
             "users": users,
             "projects": projects,
-            "current_status": status # Передаем текущий фильтр в шаблон
+            "current_status": status, # Передаем текущий фильтр в 
+            "user": current_user
         })
     except Exception as e:
         return HTMLResponse(content=f"Ошибка: {e}", status_code=500)
@@ -382,7 +384,7 @@ async def delete_task(task_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/users", response_class=HTMLResponse)
-async def users_page(request: Request, db: Session = Depends(get_db)):
+async def users_page(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     users = db.query(User).all()
     stats = {}
     
@@ -401,7 +403,8 @@ async def users_page(request: Request, db: Session = Depends(get_db)):
     return templates.TemplateResponse("users.html", {
         "request": request, 
         "users": users, 
-        "stats": stats
+        "stats": stats,
+        "user": current_user
     })
 
 
