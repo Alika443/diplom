@@ -64,6 +64,21 @@
         opacity: 0.85;
     }
 
+    /* Добавь это в самый конец блока <style> */
+    .table-responsive {
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+    }
+
+    .table {
+        background-color: #ffffff;
+    }
+
+    /* На всякий случай зафиксируем, чтобы контейнеры не резали контекстные элементы */
+    .card, .recent-section {
+        overflow: visible !important;
+    }
+
     .status-in-progress { background-color: var(--light-blue); color: var(--primary-blue); }
     .status-done { background-color: #def7ec; color: #03543f; }
     .status-unknown { background-color: #f1f5f9; color: var(--neutral-gray); }
