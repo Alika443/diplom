@@ -448,13 +448,42 @@ async def settings_page(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user)
 ):
-    # Если не авторизован — на вход
     if not current_user:
         return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
 
-    # Отдаем страницу настроек и передаем туда данные пользователя
+    from app.models.task import Task
+    from app.models.project import Project
+    from datetime import date
+
+    # 1. Считаем проекты пользователя
+    user_projects_count = db.query(Project).filter(Project.owner_id == current_user.id).count()
+
+    # 2. Получаем все задачи пользователя
+    user_tasks = db.query(Task).filter(Task.owner_id == current_user.id).all()
+
+    # 3. Считаем статусы задач для карточек достижений
+    total_tasks = len(user_tasks)
+    completed_tasks = len([t for t in user_tasks if t.status in ["Завершено", "Done"]])
+    
+    # Задачи в процессе (все активные, кроме завершенных)
+    active_statuses = ["В работе", "In Progress", "Нужно сделать", "To Do", "Приостановлено"]
+    in_progress_tasks = len([t for t in user_tasks if t.status in active_statuses])
+
+    # Срочные дедлайны (просрочены или горят сегодня, и еще не выполнены)
+    urgent_tasks = len([
+        t for t in user_tasks 
+        if t.deadline and t.deadline <= date.today() and t.status not in ["Завершено", "Done"]
+    ])
+
     return templates.TemplateResponse("settings.html", {
         "request": request,
-        "user": current_user
+        "user": current_user,
+        "stats": {
+            "projects": user_projects_count,
+            "total_tasks": total_tasks,
+            "completed": completed_tasks,
+            "in_progress": in_progress_tasks,
+            "urgent": urgent_tasks
+        }
     })
     
