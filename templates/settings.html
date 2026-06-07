@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки профиля - ProjectHub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="mb-4">
+        <h2 class="h4 fw-bold text-dark">Настройки профиля</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 text-center" style="border-radius: 12px; background-color: #ffffff;">
+                <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold mx-auto mb-3" 
+                     style="width: 80px; height: 80px; font-size: 2rem; background-color: var(--primary-blue) !important;">
+                    {{ user.username[0] | upper if user and user.username else '?' }}
+                </div>
+                
+                <h3 class="h5 fw-bold text-dark mb-1">{{ user.username }}</h3>
+                <p class="text-muted small mb-3">{{ user.email }}</p>
+                
+                <span class="badge px-3 py-2 rounded-pill" style="background-color: #def7ec; color: #03543f; font-size: 0.85rem; font-weight: 600; display: inline-block; width: max-content; margin: 0 auto;">
+                    {% if user.role and (user.role | lower == 'developer' or user.role | lower == 'разработчик') %}
+    Разработчик
+{% elif user.role and (user.role | lower == 'manager' or user.role | lower == 'менеджер') %}
+    Менеджер
+{% elif user.role and (user.role | lower == 'admin' or user.role | lower == 'администратор') %}
+    Администратор
+{% else %}
+    Участник
+{% endif %}
+                </span>
+                
+                <hr class="my-4 text-muted opacity-25">
+                
+                <div class="text-start">
+                    <small class="text-muted d-block mb-1">Системный ID</small>
+                    <span class="fw-bold text-dark">#{{ user.id }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 12px; background-color: #ffffff;">
+                <h4 class="h6 fw-bold text-dark text-uppercase mb-4" style="letter-spacing: 0.5px;">Безопасность и пароль</h4>
+                
+                <form action="/auth/change-password" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">Текущий пароль</label>
+                        <input type="password" name="current_password" class="form-control px-3 py-2" style="border-radius: 8px; border-color: #e3e6f0;" required>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Новый пароль</label>
+                            <input type="password" name="new_password" class="form-control px-3 py-2" style="border-radius: 8px; border-color: #e3e6f0;" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted small fw-bold">Подтвердите новый пароль</label>
+                            <input type="password" name="confirm_password" class="form-control px-3 py-2" style="border-radius: 8px; border-color: #e3e6f0;" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-bold" style="background-color: var(--primary-blue) !important; border: none; border-radius: 8px; font-size: 0.9rem;">
+                        Сохранить изменения
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

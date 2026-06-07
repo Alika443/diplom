@@ -440,4 +440,21 @@ async def global_search(request: Request, q: str = Query(""), db: Session = Depe
         "query": search_query,
         "results": results
     })
+
+
+@app.get("/settings", response_class=HTMLResponse)
+async def settings_page(
+    request: Request, 
+    db: Session = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
+):
+    # Если не авторизован — на вход
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+
+    # Отдаем страницу настроек и передаем туда данные пользователя
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "user": current_user
+    })
     
